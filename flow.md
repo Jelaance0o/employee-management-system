@@ -825,5 +825,3 @@ This can be saved directly as:
 employee-management/
 └── README.md
 ````
-
-Or, if by **“md folder”** you literally mean you want **separate `.md` files for each step** (`01-project-structure.md`, `02-fastapi.md`, etc.), I can structure the whole project documentation that way too.
