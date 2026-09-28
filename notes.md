@@ -34,4 +34,4 @@ hashed_password = bcrypt.hashpw(
     salt
 )
 
-> "the resulting bcrypt hash contains the salt information and cost information needed for verification."
+> "the resulting bcrypt hash contains the salt information and cost information needed for verification"
