@@ -1,8 +1,12 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI,HTTPException ,Depends
 from database import client , users_collection
 from models.user_model import User
 from utils.password import hash_password, verify_password
 from schemas.auth import LoginRequest
+from utils.jwt import create_access_token
+from fastapi import Depends
+from utils.auth_dependency import get_current_user
+from fastapi.security import OAuth2PasswordRequestForm
 
 app = FastAPI()
 
@@ -86,10 +90,12 @@ def get_users():
 #         "password_correct":is_correct
 #     }
 
+# use to login-----
+
 @app.post("/login")
-def login(data:LoginRequest):
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = users_collection.find_one({
-        "email":data.email
+        "email":form_data.username
     })
     if not user:
         raise HTTPException(
@@ -97,7 +103,7 @@ def login(data:LoginRequest):
             detail="Invalid email or password"
         )
     password_correct = verify_password(
-        data.password,
+        form_data.password,
         user["password_hash"]
         )
 
@@ -106,13 +112,30 @@ def login(data:LoginRequest):
             status_code=401,
             detail="Invalid email or password"
         )
+    access_token = create_access_token({
+        "user_id": str(user["_id"]),
+        "role":user["role"]
+    })
 
     return{
         "message": "Login successful",
+        "access_token":access_token,
+        "token_type" : "bearer",
         "user":{
             "id": str(user["_id"]),
             "name": user["name"],
             "email": user["email"],
             "role": user["role"]
         }
+    }
+
+
+# Getting usetr role from token ---------
+
+@app.get("/me")
+def get_me(current_user=Depends(get_current_user)):
+
+    return {
+        "message": "You are authenticated!",
+        "user": current_user
     }
