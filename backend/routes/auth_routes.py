@@ -1,9 +1,8 @@
-from fastapi import APIRouter , HTTPException , Depends
-from fastapi.security import OAuth2PasswordRequestForm
-
+from fastapi import APIRouter , HTTPException , Depends , Response
 from database import users_collection
 from utils.password import verify_password
 from utils.jwt import create_access_token
+from schemas.auth import LoginRequest
 
 
 router = APIRouter(
@@ -12,9 +11,12 @@ router = APIRouter(
 )
 
 @router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
+def login(
+    login_data: LoginRequest,
+    response: Response
+    ):
     user = users_collection.find_one({
-        "email":form_data.username
+        "email":login_data.email
     })
     if not user:
         raise HTTPException(
@@ -22,7 +24,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Invalid email or password"
         )
     password_correct = verify_password(
-        form_data.password,
+        login_data.password,
         user["password_hash"]
         )
 
@@ -36,10 +38,17 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         "role":user["role"]
     })
 
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age= 60*60
+    )
+
     return{
         "message": "Login successful",
-        "access_token":access_token,
-        "token_type" : "bearer",
         "user":{
             "id": str(user["_id"]),
             "name": user["name"],

@@ -1,5 +1,4 @@
-from fastapi import Depends , HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, Request
 from jose import jwt, JWTError
 import os
 from dotenv import load_dotenv
@@ -9,10 +8,15 @@ load_dotenv()
 JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
+def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated"
+        )
 
     try:
         payload = jwt.decode(
@@ -42,19 +46,21 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         )
 
 
-def require_admin(
-        current_user=Depends(get_current_user)):
+def require_admin(current_user=Depends(get_current_user)):
     if current_user["role"] != "admin":
-            raise HTTPException(
-                status_code=403,
-                detail="Admin access required"
-            )
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required"
+        )
+
     return current_user
 
-def require_employee(current_user = Depends(get_current_user)):
-     if current_user["role"] != "employee":
-          raise HTTPException(
-               status_code=403,
-               detail="Employee access required"
-          )
-     return current_user
+
+def require_employee(current_user=Depends(get_current_user)):
+    if current_user["role"] != "employee":
+        raise HTTPException(
+            status_code=403,
+            detail="Employee access required"
+        )
+
+    return current_user
