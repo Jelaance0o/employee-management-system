@@ -773,7 +773,7 @@ Test:
 
 # 🚀 Final Features
 
-* [ ] User registration
+* [] User registration
 * [ ] Admin login
 * [ ] Employee login
 * [ ] Password hashing
