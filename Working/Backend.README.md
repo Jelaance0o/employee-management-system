@@ -537,6 +537,8 @@ React doesn't manually attach it.
 
 This is the security gate for protected routes.
 
+request = everything the client sends to FastAPI in a request.
+
 ## `get_current_user()`
 
 ```python
