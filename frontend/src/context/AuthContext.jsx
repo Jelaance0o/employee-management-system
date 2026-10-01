@@ -67,3 +67,4 @@ const logout = async () => {
 export function useAuth() {
   return useContext(AuthContext);
 }
+

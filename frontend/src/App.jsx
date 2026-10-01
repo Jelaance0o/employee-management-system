@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Employees from "./pages/Employees";
 
 function App() {
   return (
@@ -25,6 +25,15 @@ function App() {
           element={
             <ProtectedRoute allowedRole="employee">
               <EmployeeDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/employees"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <Employees />
             </ProtectedRoute>
           }
         />
