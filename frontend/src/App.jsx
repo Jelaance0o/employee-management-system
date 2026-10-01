@@ -1,13 +1,36 @@
-import React from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-const App = () => {
+import Login from "./pages/Login";
+import AdminDashboard from "./pages/AdminDashboard";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+function App() {
   return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <h1 className="text-4xl font-bold text-white">
-          Employee Management System
-        </h1>
-      </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee"
+          element={
+            <ProtectedRoute allowedRole="employee">
+              <EmployeeDashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
-export default App
+export default App;

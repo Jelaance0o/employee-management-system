@@ -56,3 +56,15 @@ def login(
             "role": user["role"]
         }
     }
+
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        samesite="lax"
+    )
+
+    return {
+        "message": "Logout successful"
+    }
