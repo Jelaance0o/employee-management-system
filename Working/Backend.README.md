@@ -170,6 +170,20 @@ LoginRequest
 
 Responsible for password hashing and verification.
 
+# Encode & Decode
+
+- **Encode** → String → Bytes
+- **Decode** → Bytes → String
+- How UTF-8 defines Bytes ? = > "h" → 01101000 , "e" → 01100101
+- Bcrypt works with **bytes**.
+- `.encode("utf-8")` converts the password to bytes.
+- Bcrypt hashes the bytes.
+- `.decode("utf-8")` converts the hash back to a string.
+- The hash string is stored in MongoDB.
+
+**Flow:**  
+`String → Encode → Bytes → Bcrypt → Hash → Decode → String`
+
 ## `hash_password()`
 
 ```python
@@ -522,6 +536,8 @@ React doesn't manually attach it.
 # 12. `utils/auth_dependency.py`
 
 This is the security gate for protected routes.
+
+request = everything the client sends to FastAPI in a request.
 
 ## `get_current_user()`
 
