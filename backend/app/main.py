@@ -1,8 +1,5 @@
 from fastapi import FastAPI, HTTPException
 
-from app.db.session import check_database_connection
-
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 

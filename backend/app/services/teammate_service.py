@@ -1,3 +1,6 @@
+from sqlalchemy import func, select
+
+from app.models import User
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -70,6 +73,58 @@ def deactivate_teammate(
             )
 
     teammate.is_active = False
+
+    try:
+        db.commit()
+        db.refresh(teammate)
+        return teammate
+    except Exception:
+        db.rollback()
+        raise
+
+
+
+def update_teammate_role(
+    db: Session,
+    workspace_id: int,
+    target_user_id: int,
+    new_role: str,
+    acting_admin_id: int,
+) -> User:
+    teammate = db.scalar(
+        select(User).where(
+            User.id == target_user_id,
+            User.workspace_id == workspace_id,
+        )
+    )
+
+    if teammate is None:
+        raise ValueError("Teammate not found in this workspace.")
+
+    if teammate.id == acting_admin_id:
+        raise ValueError("You cannot change your own role.")
+
+    if (
+        teammate.is_active
+        and teammate.role == "admin"
+        and new_role != "admin"
+    ):
+        active_admin_count = db.scalar(
+            select(func.count())
+            .select_from(User)
+            .where(
+                User.workspace_id == workspace_id,
+                User.role == "admin",
+                User.is_active.is_(True),
+            )
+        )
+
+        if active_admin_count <= 1:
+            raise ValueError(
+                "The workspace must have at least one active Admin."
+            )
+
+    teammate.role = new_role
 
     try:
         db.commit()

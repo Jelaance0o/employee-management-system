@@ -7,11 +7,15 @@ from sqlalchemy.orm import Session
 from app.dependencies.auth import DbSession, require_roles
 from app.models.user import User
 from app.schemas.auth import UserResponse
+from app.schemas.teammate import TeammateRoleUpdate
 from app.services.teammate_service import (
     deactivate_teammate,
     get_teammate,
     list_teammates,
 )
+
+from app.schemas.teammate import TeammateRoleUpdate
+from app.services.teammate_service import update_teammate_role
 
 router = APIRouter(prefix="/teammates", tags=["Teammates"])
 
@@ -77,3 +81,24 @@ def deactivate_teammate_endpoint(
             ),
             detail=message,
         ) from exc
+
+
+
+@router.patch("/{user_id}/role")
+def update_teammate_role_endpoint(
+    user_id: int,
+    payload: TeammateRoleUpdate,
+    db: DbSession,
+    user: AdminUser,
+):
+    try:
+        teammate = update_teammate_role(
+            db=db,
+            workspace_id=user.workspace_id,
+            target_user_id=user_id,
+            new_role=payload.role,
+            acting_admin_id=user.id,
+        )
+        return UserResponse.model_validate(teammate)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

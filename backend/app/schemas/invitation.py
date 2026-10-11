@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 class InvitationCreate(BaseModel):
     email: EmailStr
-    role: Literal["employee", "project_manager"] = "employee"
+    role: Literal["admin", "project_manager", "employee"] = "employee"
 
 
 class InvitationCreated(BaseModel):
