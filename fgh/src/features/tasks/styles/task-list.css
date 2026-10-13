@@ -1,0 +1,12 @@
+.ts-task-table-wrap{width:100%;overflow-x:auto;border-top:1px solid var(--ts-border)}
+.ts-task-table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+.ts-task-table th{padding:12px 14px;background:var(--ts-surface-muted);color:var(--ts-text-muted);font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.06em}
+.ts-task-table th:first-child,.ts-task-table td:first-child{padding-left:22px}
+.ts-task-table td{padding:13px 14px;border-top:1px solid var(--ts-border);color:var(--ts-text);font-size:11px;vertical-align:middle}
+.ts-task-table tbody tr:hover{background:var(--ts-surface-muted)}
+.ts-task-table-title{display:flex;flex-direction:column;gap:4px;max-width:270px;padding:0;border:0;background:transparent;text-align:left;cursor:pointer}
+.ts-task-table-title strong{overflow:hidden;color:var(--ts-text);font-size:12px;font-weight:700;text-overflow:ellipsis}
+.ts-task-table-title:hover strong{color:var(--ts-accent)}
+.ts-task-table-title small{color:var(--ts-text-muted);font-size:10px}
+.ts-task-table-date{display:inline-flex;align-items:center;gap:6px;color:var(--ts-text-secondary)}
+.ts-task-table-date.is-overdue{color:var(--ts-danger);font-weight:700}

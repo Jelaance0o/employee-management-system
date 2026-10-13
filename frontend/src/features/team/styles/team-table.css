@@ -1,0 +1,13 @@
+/* Team table, avatars, and status labels */
+.ts-table-head { background: var(--ts-surface-muted); color: var(--ts-text-muted); }
+.ts-table-row { border-bottom: 1px solid var(--ts-border); transition: background-color 120ms ease; }
+.ts-table-row:last-child { border-bottom: 0; }
+.ts-table-row:hover { background: var(--ts-surface-muted); }
+.ts-avatar { display: flex; width: 40px; height: 40px; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--ts-border); border-radius: 12px; background: var(--ts-accent-soft); color: var(--ts-accent); font-size: 13px; font-weight: 650; }
+.ts-team-role, .ts-team-status { display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 5px 8px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.ts-team-role-admin { background: var(--ts-accent-soft); color: var(--ts-accent); }
+.ts-team-role-project_manager { background: var(--ts-surface-muted); color: var(--ts-text-secondary); }
+.ts-team-role-employee, .ts-team-status-active { background: var(--ts-success-soft); color: var(--ts-success); }
+.ts-team-status-inactive { background: var(--ts-surface-muted); color: var(--ts-text-muted); }
+.ts-team-status-dot { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: currentColor; }
+@media (prefers-reduced-motion: reduce) { .ts-table-row { transition: none; } }

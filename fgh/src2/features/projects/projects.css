@@ -1,0 +1,5 @@
+/* Feature CSS entry point. Detailed styles are split by responsibility. */
+@import "./styles/projects-layout.css";
+@import "./styles/projects-table.css";
+@import "./styles/projects-dialogs.css";
+@import "./styles/projects-responsive.css";

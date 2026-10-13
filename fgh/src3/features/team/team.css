@@ -1,0 +1,83 @@
+/* TeamSpace Team Members */
+
+.ts-table-head {
+  background: var(--ts-surface-muted);
+  color: var(--ts-text-muted);
+}
+
+.ts-table-row {
+  border-bottom: 1px solid var(--ts-border);
+  transition: background-color 120ms ease;
+}
+
+.ts-table-row:last-child {
+  border-bottom: 0;
+}
+
+.ts-table-row:hover {
+  background: var(--ts-surface-muted);
+}
+
+.ts-avatar {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ts-border);
+  border-radius: 0.75rem;
+  background: var(--ts-accent-soft);
+  color: var(--ts-accent);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.ts-team-role,
+.ts-team-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ts-team-role-admin {
+  background: var(--ts-accent-soft);
+  color: var(--ts-accent);
+}
+
+.ts-team-role-project_manager {
+  background: var(--ts-surface-muted);
+  color: var(--ts-text-secondary);
+}
+
+.ts-team-role-employee {
+  background: var(--ts-success-soft);
+  color: var(--ts-success);
+}
+
+.ts-team-status-active {
+  background: var(--ts-success-soft);
+  color: var(--ts-success);
+}
+
+.ts-team-status-inactive {
+  background: var(--ts-surface-muted);
+  color: var(--ts-text-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ts-dialog-backdrop,
+  .ts-dialog {
+    animation: none;
+  }
+
+  .ts-table-row,
+  .ts-icon-button {
+    transition: none;
+  }
+}
+

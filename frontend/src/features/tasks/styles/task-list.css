@@ -1,0 +1,52 @@
+/* Compact, responsive task table */
+.ts-task-table-wrap{width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;border-top:1px solid var(--ts-border);scrollbar-width:thin;scrollbar-color:var(--ts-border-strong) transparent}
+.ts-task-table{width:100%;min-width:0;table-layout:fixed;border-collapse:separate;border-spacing:0;text-align:left}
+.ts-task-table th{padding:12px 12px;background:var(--ts-surface-muted);color:var(--ts-text-muted);font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.055em}
+.ts-task-table th:first-child,.ts-task-table td:first-child{padding-left:22px}
+.ts-task-table td{padding:12px;border-top:1px solid var(--ts-border);color:var(--ts-text);font-size:11px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
+.ts-task-table tbody tr{transition:background .14s ease}
+.ts-task-table tbody tr:hover{background:var(--ts-surface-muted)}
+.ts-task-table th:nth-child(1){width:27%}
+.ts-task-table th:nth-child(2){width:17%}
+.ts-task-table th:nth-child(3){width:15%}
+.ts-task-table th:nth-child(4){width:10%}
+.ts-task-table th:nth-child(5){width:15%}
+.ts-task-table th:nth-child(6){width:13%}
+.ts-task-table th:nth-child(7){width:38px}
+.ts-task-table-title{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;max-width:100%;padding:0;border:0;background:transparent;text-align:left;cursor:pointer}
+.ts-task-table-title strong{max-width:100%;overflow:hidden;color:var(--ts-text);font-size:12px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.ts-task-table-title:hover strong{color:var(--ts-accent)}
+.ts-task-table-title small{color:var(--ts-text-muted);font-size:10px}
+.ts-task-table-date{display:inline-flex;align-items:center;gap:6px;color:var(--ts-text-secondary);white-space:nowrap}
+.ts-task-table-date.is-overdue{color:var(--ts-danger);font-weight:700}
+.ts-task-table td:nth-child(2){white-space:nowrap;text-overflow:ellipsis}
+.ts-task-table td:nth-child(5){white-space:nowrap;text-overflow:ellipsis}
+.ts-task-table td:last-child{padding-right:14px}
+@media(max-width:1050px){
+  .ts-task-table th:nth-child(2),.ts-task-table td:nth-child(2){display:none}
+  .ts-task-table th:nth-child(1){width:31%}
+  .ts-task-table th:nth-child(3){width:17%}
+  .ts-task-table th:nth-child(4){width:12%}
+  .ts-task-table th:nth-child(5){width:19%}
+  .ts-task-table th:nth-child(6){width:16%}
+}
+@media(max-width:760px){
+  .ts-task-table th:nth-child(4),.ts-task-table td:nth-child(4){display:none}
+  .ts-task-table th:first-child,.ts-task-table td:first-child{padding-left:14px}
+  .ts-task-table th,.ts-task-table td{padding:11px 9px}
+  .ts-task-table th:nth-child(1){width:39%}
+  .ts-task-table th:nth-child(3){width:21%}
+  .ts-task-table th:nth-child(5){width:20%}
+  .ts-task-table th:nth-child(6){width:17%}
+}
+@media(max-width:560px){
+  .ts-task-table th:nth-child(5),.ts-task-table td:nth-child(5){display:none}
+  .ts-task-table th:nth-child(1){width:48%}
+  .ts-task-table th:nth-child(3){width:27%}
+  .ts-task-table th:nth-child(6){width:21%}
+  .ts-task-table th{font-size:9px;letter-spacing:.02em}
+  .ts-task-table td{font-size:10px}
+  .ts-task-table-title strong{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4}
+  .ts-task-table-date{gap:4px;font-size:10px}
+  .ts-task-table-date svg{display:none}
+}
