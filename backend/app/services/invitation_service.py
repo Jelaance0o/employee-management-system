@@ -36,6 +36,7 @@ def find_valid_invitation(
     if invitation is None:
         raise ValueError("Invitation is invalid or no longer available.")
 
+    
     now = datetime.now(timezone.utc)
 
     if invitation.accepted_at is not None:
@@ -44,10 +45,22 @@ def find_valid_invitation(
     if invitation.revoked_at is not None:
         raise ValueError("This invitation has been revoked.")
 
-    if invitation.expires_at <= now:
+    expires_at = invitation.expires_at
+
+    # SQLite may return timezone-naive datetimes even when
+    # DateTime(timezone=True) is configured. Our application
+    # stores and interprets invitation timestamps as UTC.
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at <= now:
         raise ValueError("This invitation has expired.")
 
     return invitation
+
 
 
 def create_invitation(
