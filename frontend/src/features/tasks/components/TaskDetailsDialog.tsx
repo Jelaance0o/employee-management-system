@@ -41,7 +41,9 @@ export default function TaskDetailsDialog({ task, project, assigneeName, role, u
         <div className="ts-task-detail-grid">
           <div><span><CalendarDays size={15} /> Due date</span><strong>{formatTaskDate(task.due_date)}</strong></div>
           <div><span><Clock3 size={15} /> Created</span><strong>{formatTaskDate(task.created_at)}</strong></div>
-          <div><span>Assignee</span><strong>{assigneeName ?? (task.assigned_to_id ? `Teammate #${task.assigned_to_id}` : "Unassigned")}</strong></div>
+          <div><span>Assigned to</span><strong>{task.assigned_to_name ?? assigneeName ?? (task.assigned_to_id ? `Teammate #${task.assigned_to_id}` : "Unassigned")}</strong></div>
+          <div><span>Assigned by</span><strong>{task.created_by_name ?? `User #${task.created_by_id}`}</strong></div>
+          <div><span>Project manager</span><strong>{task.project_manager_name ?? (task.project_manager_id ? `Manager #${task.project_manager_id}` : "Not assigned")}</strong></div>
           <div><span>Completed</span><strong>{task.completed_at ? new Date(task.completed_at).toLocaleDateString("en-IN") : "Not completed"}</strong></div>
         </div>
         {transitions.length > 0 && <section className="ts-task-status-actions"><h3>Update status</h3><div>{transitions.map((status) => <button type="button" key={status} className={status === "Done" ? "ts-button-primary" : "ts-button-secondary"} disabled={Boolean(busyStatus)} onClick={() => void changeStatus(status)}>{busyStatus === status ? <LoaderCircle className="ts-task-spin" size={15} /> : status === "Done" ? <Check size={15} /> : null}{status}</button>)}</div><p className="ts-muted">Available actions depend on your role and the current task status.</p></section>}

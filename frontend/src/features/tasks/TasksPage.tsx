@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, ClipboardList, LoaderCircle, Plus, RefreshCw, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import type { Project, Task, TaskStatus, TaskTeammate } from "./tasks.types";
-import { TASK_STATUSES } from "./tasks.types";
-import { getTaskErrorMessage, canTransitionTask } from "./tasks.utils";
-import { getTaskProjects, getTaskTeammates, getTasks, updateTask } from "./tasks.api";
+import type { Project, Task, TaskTeammate } from "./tasks.types";
+import { getTaskErrorMessage } from "./tasks.utils";
+import { getTaskProjects, getTaskTeammates, getTasks } from "./tasks.api";
 import TaskStats from "./components/TaskStats";
 import TaskFilters from "./components/TaskFilters";
-import TaskBoard from "./components/TaskBoard";
 import TaskList from "./components/TaskList";
 import TaskFormDialog from "./components/TaskFormDialog";
 import TaskDetailsDialog from "./components/TaskDetailsDialog";
+import TaskReportsPanel from "./components/TaskReportsPanel";
+import MemberProfileEditor from "../team/MemberProfileEditor";
 import "./tasks.css";
-import "./styles/task-board.css";
 import "./styles/task-list.css";
 import "./styles/task-form.css";
 
@@ -31,7 +30,6 @@ export default function TasksPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [projectFilter, setProjectFilter] = useState("all");
-  const [view, setView] = useState<"board" | "list">("list");
   const [formTask, setFormTask] = useState<Task | null | "create">(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -69,16 +67,6 @@ export default function TasksPage() {
     setSelectedTask(updated);
   };
 
-  const handleDropStatus = async (task: Task, status: TaskStatus) => {
-    const project = projectsById.get(task.project_id);
-    const isAssignedProjectManager = user?.role === "project_manager" && project?.project_manager_id === user.id;
-    if (!canTransitionTask(task, status, user?.role, isAssignedProjectManager, user?.id)) return;
-    try {
-      const updated = await updateTask(task.id, { status });
-      setTasks((current) => current.map((item) => item.id === updated.id ? updated : item));
-      setSuccess(`Task moved to ${status}.`);
-    } catch (err) { setError(getTaskErrorMessage(err)); }
-  };
 
   const handleSaved = (saved: Task, created: boolean) => {
     if (created) setTasks((current) => [saved, ...current]);
@@ -96,11 +84,14 @@ export default function TasksPage() {
 
     <TaskStats tasks={tasks} />
     <section className="ts-panel ts-task-main-panel"><div className="ts-task-panel-heading"><div><h2>Task workspace</h2><p className="ts-secondary">{filteredTasks.length} {filteredTasks.length === 1 ? "task" : "tasks"} shown</p></div><span className="ts-task-panel-count">{tasks.length} total</span></div>
-      <TaskFilters search={search} onSearchChange={setSearch} status={statusFilter} onStatusChange={setStatusFilter} projectId={projectFilter} onProjectChange={setProjectFilter} projects={projects} view={view} onViewChange={setView} canCreate={Boolean(canCreate)} onCreate={() => setFormTask("create")} />
-      {loading ? <div className="ts-task-page-state"><LoaderCircle className="ts-task-spin" size={25} /><p>Loading tasks...</p></div> : filteredTasks.length === 0 ? <div className="ts-task-page-state"><span className="ts-task-empty-icon"><ClipboardList size={24} /></span><h3>{tasks.length ? "No matching tasks" : "No tasks yet"}</h3><p>{tasks.length ? "Try another search or filter." : canCreate ? "Create a task to start tracking your team's work." : "Tasks assigned to you will appear here."}</p>{canCreate && tasks.length === 0 && <button type="button" className="ts-button-primary" onClick={() => setFormTask("create")}><Plus size={16} />Create first task</button>}</div> : view === "board" ? <TaskBoard tasks={filteredTasks} projectsById={projectsById} teammatesById={teammatesById} canDragTo={(task, status) => { const project = projectsById.get(task.project_id); return canTransitionTask(task, status, user?.role, user?.role === "project_manager" && project?.project_manager_id === user?.id, user?.id); }} onOpen={setSelectedTask} onDropStatus={(task, status) => void handleDropStatus(task, status)} /> : <TaskList tasks={filteredTasks} projectsById={projectsById} teammatesById={teammatesById} onOpen={setSelectedTask} />}
+      <TaskFilters search={search} onSearchChange={setSearch} status={statusFilter} onStatusChange={setStatusFilter} projectId={projectFilter} onProjectChange={setProjectFilter} projects={projects} canCreate={Boolean(canCreate)} onCreate={() => setFormTask("create")} />
+      {loading ? <div className="ts-task-page-state"><LoaderCircle className="ts-task-spin" size={25} /><p>Loading tasks...</p></div> : filteredTasks.length === 0 ? <div className="ts-task-page-state"><span className="ts-task-empty-icon"><ClipboardList size={24} /></span><h3>{tasks.length ? "No matching tasks" : "No tasks yet"}</h3><p>{tasks.length ? "Try another search or filter." : canCreate ? "Create a task to start tracking your team's work." : "Tasks assigned to you will appear here."}</p>{canCreate && tasks.length === 0 && <button type="button" className="ts-button-primary" onClick={() => setFormTask("create")}><Plus size={16} />Create first task</button>}</div> : <TaskList tasks={filteredTasks} projectsById={projectsById} teammatesById={teammatesById} onOpen={setSelectedTask} />}
     </section>
 
-    {formTask !== null && <TaskFormDialog task={formTask === "create" ? null : formTask} projects={projects} teammates={teammates} role={user?.role} onClose={() => setFormTask(null)} onSaved={handleSaved} />}
+    <TaskReportsPanel tasks={tasks} userId={user?.id} role={user?.role} />
+    {user?.role === "employee" && <MemberProfileEditor />}
+
+    {formTask !== null && <TaskFormDialog task={formTask === "create" ? null : formTask} projects={projects} onClose={() => setFormTask(null)} onSaved={handleSaved} />}
     {selectedTask && <TaskDetailsDialog key={selectedTask.id} task={selectedTask} project={projectsById.get(selectedTask.project_id)} assigneeName={selectedTask.assigned_to_id ? teammatesById.get(selectedTask.assigned_to_id) : undefined} role={user?.role} userId={user?.id} onClose={() => setSelectedTask(null)} onEdit={(task) => { setSelectedTask(null); setFormTask(task); }} onUpdated={replaceTask} />}
   </main>;
 }

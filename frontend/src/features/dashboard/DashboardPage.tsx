@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import "./dashboard.css";
 import {
   AlertCircle,
+  CalendarDays,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock3,
   FolderKanban,
   LoaderCircle,
@@ -33,6 +36,11 @@ interface Task {
   priority: "low" | "medium" | "high" | "urgent";
   due_date: string | null;
   assigned_to_id: number | null;
+  project_name?: string | null;
+  created_by_id?: number | null;
+  created_by_name?: string | null;
+  assigned_to_name?: string | null;
+  project_manager_name?: string | null;
 }
 
 interface Teammate {
@@ -124,6 +132,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [expandedProjectIds, setExpandedProjectIds] = useState<Set<number>>(new Set());
+  const [projectTasksById, setProjectTasksById] = useState<Record<number, Task[]>>({});
+  const [projectTaskLoadingIds, setProjectTaskLoadingIds] = useState<Set<number>>(new Set());
+  const [projectTaskErrors, setProjectTaskErrors] = useState<Record<number, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -131,6 +143,10 @@ export default function DashboardPage() {
     async function loadDashboard() {
       setLoading(true);
       setError("");
+      setExpandedProjectIds(new Set());
+      setProjectTasksById({});
+      setProjectTaskLoadingIds(new Set());
+      setProjectTaskErrors({});
 
       try {
         const [projectsResponse, tasksResponse] = await Promise.all([
@@ -180,6 +196,50 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [user?.role, refreshKey]);
+
+  async function fetchProjectTasks(projectId: number) {
+    if (Object.prototype.hasOwnProperty.call(projectTasksById, projectId) || projectTaskLoadingIds.has(projectId)) return;
+
+    setProjectTaskLoadingIds((current) => new Set(current).add(projectId));
+    setProjectTaskErrors((current) => {
+      const next = { ...current };
+      delete next[projectId];
+      return next;
+    });
+
+    try {
+      const response = await api.get<Task[]>(`/api/v1/projects/${projectId}/top-tasks`);
+      setProjectTasksById((current) => ({ ...current, [projectId]: response.data }));
+    } catch {
+      setProjectTaskErrors((current) => ({
+        ...current,
+        [projectId]: "We couldn't load tasks for this project. Please try again.",
+      }));
+    } finally {
+      setProjectTaskLoadingIds((current) => {
+        const next = new Set(current);
+        next.delete(projectId);
+        return next;
+      });
+    }
+  }
+
+  function toggleProjectTasks(projectId: number) {
+    const willExpand = !expandedProjectIds.has(projectId);
+    setExpandedProjectIds((current) => {
+      const next = new Set(current);
+      if (next.has(projectId)) next.delete(projectId);
+      else next.add(projectId);
+      return next;
+    });
+    if (willExpand) void fetchProjectTasks(projectId);
+  }
+
+  function getPriorityClass(priority: Task["priority"]) {
+    if (priority === "urgent" || priority === "high") return "ts-status-danger";
+    if (priority === "medium") return "ts-status-accent";
+    return "ts-status-muted";
+  }
 
   const activeProjects = projects.filter(
     (project) => project.status === "active",
@@ -352,27 +412,72 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="divide-y ts-divider">
-              {projects.slice(0, 5).map((project) => (
-                <div
-                  key={project.id}
-                  className="flex items-center justify-between gap-4 px-5 py-4"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium ts-text">
-                      {project.name}
-                    </p>
-                    <p className="mt-1 text-xs ts-muted">
-                      Due {formatDate(project.due_date)}
-                    </p>
-                  </div>
+              {projects.slice(0, 5).map((project) => {
+                const expanded = expandedProjectIds.has(project.id);
+                const projectTasks = projectTasksById[project.id] ?? [];
+                const loadingProjectTasks = projectTaskLoadingIds.has(project.id);
+                const projectTaskError = projectTaskErrors[project.id];
 
-                  <span
-                    className={`ts-status ${getStatusClass(project.status)}`}
-                  >
-                    {project.status.replace("_", " ")}
-                  </span>
-                </div>
-              ))}
+                return (
+                  <div key={project.id}>
+                    <div className="flex items-center justify-between gap-3 px-5 py-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium ts-text">
+                          {project.name}
+                        </p>
+                        <p className="mt-1 text-xs ts-muted">
+                          Due {formatDate(project.due_date)}
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className={`ts-status ${getStatusClass(project.status)}`}>
+                          {project.status.replace("_", " ")}
+                        </span>
+                        <button
+                          type="button"
+                          className="ts-button-secondary ts-focus inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-medium"
+                          aria-expanded={expanded}
+                          aria-controls={`project-top-tasks-${project.id}`}
+                          onClick={() => toggleProjectTasks(project.id)}
+                        >
+                          Tasks
+                          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {expanded && (
+                      <div id={`project-top-tasks-${project.id}`} className="border-t px-5 py-3" style={{ borderColor: "var(--ts-border)", background: "var(--ts-surface-muted)" }}>
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-wide ts-muted">Top priority tasks</p>
+                        {loadingProjectTasks ? (
+                          <div className="flex items-center gap-2 py-3 text-sm ts-secondary"><LoaderCircle className="animate-spin" size={16} />Loading project tasks...</div>
+                        ) : projectTaskError ? (
+                          <div className="flex flex-wrap items-center justify-between gap-3 py-2">
+                            <p className="text-sm" style={{ color: "var(--ts-danger)" }}>{projectTaskError}</p>
+                            <button type="button" className="ts-button-secondary ts-focus rounded-lg px-3 py-1.5 text-xs font-medium" onClick={() => void fetchProjectTasks(project.id)}>Retry</button>
+                          </div>
+                        ) : projectTasks.length === 0 ? (
+                          <p className="py-2 text-sm ts-secondary">No tasks have been created for this project yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {projectTasks.slice(0, 3).map((task) => (
+                              <article key={task.id} className="rounded-lg border p-3" style={{ borderColor: "var(--ts-border)", background: "var(--ts-surface)" }}>
+                                <p className="break-words text-sm font-medium ts-text">{task.title}</p>
+                                <div className="mt-2 flex flex-wrap items-center gap-2">
+                                  <span className={`ts-status ${getStatusClass(task.status)}`}>{task.status}</span>
+                                  <span className={`ts-status ${getPriorityClass(task.priority)}`}>{task.priority}</span>
+                                  <span className="inline-flex items-center gap-1 text-xs ts-muted"><CalendarDays size={13} />{formatDate(task.due_date)}</span>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -408,8 +513,12 @@ export default function DashboardPage() {
                       {task.title}
                     </p>
                     <p className="mt-1 truncate text-xs ts-muted">
-                      {projectNames.get(task.project_id) ?? "Project"} · Due{" "}
-                      {formatDate(task.due_date)}
+                      {projectNames.get(task.project_id) ?? task.project_name ?? "Project"} · Due {formatDate(task.due_date)}
+                    </p>
+                    <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] ts-muted">
+                      <span>Assigned to: <strong className="font-medium ts-secondary">{task.assigned_to_name ?? "Unassigned"}</strong></span>
+                      <span>Assigned by: <strong className="font-medium ts-secondary">{task.created_by_name ?? "Not available"}</strong></span>
+                      <span>Project manager: <strong className="font-medium ts-secondary">{task.project_manager_name ?? "Not assigned"}</strong></span>
                     </p>
                   </div>
 

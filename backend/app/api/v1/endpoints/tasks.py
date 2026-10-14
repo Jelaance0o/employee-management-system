@@ -9,6 +9,10 @@ from app.dependencies.auth import (
 )
 from app.models import User
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from app.schemas.task_report import TaskReportCreate, TaskReportResponse
+from app.models import TaskReport
+from app.services.task_report_service import create_task_report
+from sqlalchemy import select
 from app.services.task_service import (
     create_task,
     get_task_for_user,
@@ -85,6 +89,28 @@ def get_task_endpoint(
         )
 
     return task
+
+
+@router.post("/{task_id}/reports", response_model=TaskReportResponse, status_code=status.HTTP_201_CREATED)
+def create_task_report_endpoint(task_id: int, payload: TaskReportCreate, db: DbSession, user: CurrentUser):
+    task = get_task_for_user(db, user, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found.")
+    try:
+        return create_task_report(db, user, task, payload)
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
+@router.get("/{task_id}/reports", response_model=list[TaskReportResponse])
+def list_task_reports_for_task(task_id: int, db: DbSession, user: CurrentUser):
+    task = get_task_for_user(db, user, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found.")
+    statement = select(TaskReport).where(TaskReport.task_id == task.id, TaskReport.workspace_id == user.workspace_id)
+    if user.role == "employee":
+        statement = statement.where(TaskReport.submitted_by_id == user.id)
+    return list(db.scalars(statement.order_by(TaskReport.created_at.desc(), TaskReport.id.desc())).all())
 
 
 @router.patch("/{task_id}", response_model=TaskResponse)

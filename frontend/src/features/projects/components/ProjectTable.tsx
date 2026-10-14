@@ -16,7 +16,11 @@ export function ProjectTable({ projects, managerMap, onSelect }: ProjectTablePro
         <thead><tr><th>Project</th><th>Status</th><th>Priority</th><th>Project manager</th><th>Due date</th><th aria-label="Actions" /></tr></thead>
         <tbody>
           {projects.map((project) => {
-            const manager = project.project_manager_id ? managerMap.get(project.project_manager_id) : undefined;
+            const manager = project.project_manager_name
+              ? { full_name: project.project_manager_name }
+              : project.project_manager_id
+                ? managerMap.get(project.project_manager_id)
+                : undefined;
             return (
               <tr key={project.id}>
                 <td><button type="button" className="ts-project-name-button" onClick={() => onSelect(project)}>
@@ -25,7 +29,7 @@ export function ProjectTable({ projects, managerMap, onSelect }: ProjectTablePro
                 </button></td>
                 <td><ProjectStatusBadge status={project.status} /></td>
                 <td><PriorityBadge priority={project.priority} /></td>
-                <td>{manager ? <span className="ts-project-manager"><span className="ts-project-manager-avatar">{getInitials(manager.full_name)}</span><span>{manager.full_name}</span></span> : project.project_manager_id ? <span className="ts-muted">ID #{project.project_manager_id}</span> : <span className="ts-muted">Unassigned</span>}</td>
+                <td>{manager ? <span className="ts-project-manager"><span className="ts-project-manager-avatar">{getInitials(manager.full_name)}</span><span>{manager.full_name}</span></span> : <span className="ts-muted">{project.project_manager_id ? "Manager unavailable" : "Unassigned"}</span>}</td>
                 <td><span className={`ts-project-date ${isOverdue(project) ? "is-overdue" : ""}`}><CalendarDays size={15} />{formatDate(project.due_date)}</span></td>
                 <td><button type="button" className="ts-project-open-button" onClick={() => onSelect(project)} aria-label={`View ${project.name}`}><ArrowUpRight size={17} /></button></td>
               </tr>

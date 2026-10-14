@@ -23,6 +23,11 @@ export interface Task {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  project_name?: string | null;
+  created_by_name?: string | null;
+  assigned_to_name?: string | null;
+  project_manager_id?: number | null;
+  project_manager_name?: string | null;
 }
 
 export interface TaskTeammate {

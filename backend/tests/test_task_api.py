@@ -496,3 +496,122 @@ def test_task_from_another_workspace_is_not_visible(
     response = client.get(f"/api/v1/tasks/{foreign_task_id}")
 
     assert response.status_code == 404
+
+def test_task_assignment_rejects_admin_and_project_manager(
+    client, team, project_data
+):
+    login(client, "manager@team-one.example", "ManagerPass@123")
+
+    for user_id in (team["admin_id"], team["manager_id"]):
+        response = client.post(
+            "/api/v1/tasks",
+            json={
+                "project_id": project_data["project_id"],
+                "title": "Invalid privileged assignee",
+                "assigned_to_id": user_id,
+            },
+        )
+        assert response.status_code == 400, response.text
+        assert "Only regular teammates" in response.json()["detail"]
+
+
+def test_eligible_assignees_contains_only_active_project_employees(
+    client, test_database, team, project_data
+):
+    with test_database() as db:
+        db.add(
+            ProjectMember(
+                project_id=project_data["project_id"],
+                user_id=team["manager_id"],
+                added_by_id=team["admin_id"],
+            )
+        )
+        db.add(
+            ProjectMember(
+                project_id=project_data["project_id"],
+                user_id=team["admin_id"],
+                added_by_id=team["admin_id"],
+            )
+        )
+        db.commit()
+
+    login(client, "manager@team-one.example", "ManagerPass@123")
+    response = client.get(
+        f"/api/v1/projects/{project_data['project_id']}/eligible-assignees"
+    )
+
+    assert response.status_code == 200, response.text
+    assert [person["id"] for person in response.json()] == [team["employee_id"]]
+    assert set(response.json()[0]) == {"id", "full_name", "email", "role", "is_active"}
+
+
+def test_project_top_tasks_sorts_priority_then_nearest_deadline(
+    client, test_database, team, project_data
+):
+    from datetime import date
+
+    with test_database() as db:
+        db.add_all([
+            Task(
+                workspace_id=team["workspace_id"],
+                project_id=project_data["project_id"],
+                title="High, later",
+                status="To Do",
+                priority="high",
+                created_by_id=team["manager_id"],
+                due_date=date(2026, 12, 20),
+            ),
+            Task(
+                workspace_id=team["workspace_id"],
+                project_id=project_data["project_id"],
+                title="Medium, soon",
+                status="In Progress",
+                priority="medium",
+                created_by_id=team["manager_id"],
+                due_date=date(2026, 10, 20),
+            ),
+            Task(
+                workspace_id=team["workspace_id"],
+                project_id=project_data["project_id"],
+                title="High, soon",
+                status="To Do",
+                priority="high",
+                created_by_id=team["manager_id"],
+                due_date=date(2026, 10, 16),
+            ),
+            Task(
+                workspace_id=team["workspace_id"],
+                project_id=project_data["project_id"],
+                title="Low, soon",
+                status="To Do",
+                priority="low",
+                created_by_id=team["manager_id"],
+                due_date=date(2026, 10, 15),
+            ),
+        ])
+        db.commit()
+
+    login(client, "manager@team-one.example", "ManagerPass@123")
+    response = client.get(
+        f"/api/v1/projects/{project_data['project_id']}/top-tasks"
+    )
+
+    assert response.status_code == 200, response.text
+    assert [task["title"] for task in response.json()] == [
+        "High, soon",
+        "High, later",
+        "Medium, soon",
+    ]
+
+
+
+def test_project_response_includes_manager_name(client, team, project_data):
+    login(client, "admin@team-one.example", "AdminPass@123")
+
+    response = client.get("/api/v1/projects")
+    assert response.status_code == 200, response.text
+    project = next(
+        item for item in response.json() if item["id"] == project_data["project_id"]
+    )
+    assert project["project_manager_name"] == "Project Manager"
+    assert "email" not in project

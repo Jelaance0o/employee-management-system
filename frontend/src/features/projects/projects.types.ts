@@ -18,6 +18,7 @@ export interface Project {
   due_date: string | null;
   created_by_id: number;
   project_manager_id: number | null;
+  project_manager_name?: string | null;
   created_at: string;
   updated_at: string;
 }

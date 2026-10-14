@@ -77,6 +77,27 @@ class Task(Base):
     creator = relationship("User", foreign_keys=[created_by_id])
     assignee = relationship("User", foreign_keys=[assigned_to_id])
 
+    @property
+    def project_name(self) -> str | None:
+        return self.project.name if self.project else None
+
+    @property
+    def created_by_name(self) -> str | None:
+        return self.creator.full_name if self.creator else None
+
+    @property
+    def assigned_to_name(self) -> str | None:
+        return self.assignee.full_name if self.assignee else None
+
+    @property
+    def project_manager_id(self) -> int | None:
+        return self.project.project_manager_id if self.project else None
+
+    @property
+    def project_manager_name(self) -> str | None:
+        manager = self.project.project_manager if self.project else None
+        return manager.full_name if manager else None
+
     __table_args__ = (
         Index("ix_tasks_workspace_status", "workspace_id", "status"),
         Index("ix_tasks_project_status", "project_id", "status"),

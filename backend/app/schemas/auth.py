@@ -17,6 +17,11 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: str
     is_active: bool
+    department: str | None = None
+    job_title: str | None = None
+    bio: str | None = None
+    skills: list[str] | None = None
+    tech_stack: list[str] | None = None
     created_at: datetime
 
 

@@ -82,6 +82,11 @@ class Project(Base):
         "User", foreign_keys=[project_manager_id]
     )
 
+    @property
+    def project_manager_name(self) -> str | None:
+        """Expose only the manager's display name in project API responses."""
+        return self.project_manager.full_name if self.project_manager else None
+
     members = relationship(
         "ProjectMember",
         back_populates="project",

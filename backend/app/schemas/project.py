@@ -63,6 +63,7 @@ class ProjectResponse(BaseModel):
     due_date: date | None
     created_by_id: int
     project_manager_id: int | None
+    project_manager_name: str | None = None
     created_at: datetime
     updated_at: datetime
 

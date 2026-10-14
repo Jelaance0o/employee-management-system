@@ -60,8 +60,8 @@ def validate_assignee(
     if assignee is None:
         raise ValueError("The assigned teammate is not active in this workspace.")
 
-    if project.project_manager_id == assignee.id:
-        return
+    if assignee.role != "employee":
+        raise ValueError("Only regular teammates can be assigned tasks.")
 
     membership = db.scalar(
         select(ProjectMember.project_id).where(

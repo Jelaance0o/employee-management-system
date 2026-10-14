@@ -56,3 +56,16 @@ class TaskResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+
+
+class TaskAssigneeResponse(BaseModel):
+    """Minimal public fields needed by the task assignee selector."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+    email: str
+    role: str
+    is_active: bool
+

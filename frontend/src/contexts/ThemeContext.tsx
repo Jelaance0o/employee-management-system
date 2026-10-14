@@ -6,16 +6,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThemeId =
-  | "light"
-  | "dark"
-  | "github-light"
-  | "github-dark"
-  | "midnight"
-  | "nord"
-  | "dracula"
-  | "solarized-light"
-  | "solarized-dark";
+export type ThemeId = "github-light" | "github-dark" | "dark";
 
 export interface ThemeOption {
   id: ThemeId;
@@ -27,22 +18,6 @@ export interface ThemeOption {
 }
 
 export const themes: ThemeOption[] = [
-  {
-    id: "light",
-    name: "Light",
-    category: "Light",
-    background: "#F8FAFC",
-    surface: "#FFFFFF",
-    accent: "#4F46E5",
-  },
-  {
-    id: "dark",
-    name: "Dark",
-    category: "Dark",
-    background: "#18191F",
-    surface: "#202127",
-    accent: "#818CF8",
-  },
   {
     id: "github-light",
     name: "GitHub Light",
@@ -60,44 +35,12 @@ export const themes: ThemeOption[] = [
     accent: "#4493F8",
   },
   {
-    id: "midnight",
-    name: "Midnight",
+    id: "dark",
+    name: "Dark",
     category: "Dark",
-    background: "#101827",
-    surface: "#172235",
-    accent: "#7C9CFF",
-  },
-  {
-    id: "nord",
-    name: "Nord",
-    category: "Dark",
-    background: "#2E3440",
-    surface: "#3B4252",
-    accent: "#88C0D0",
-  },
-  {
-    id: "dracula",
-    name: "Dracula",
-    category: "Dark",
-    background: "#282A36",
-    surface: "#343746",
-    accent: "#BD93F9",
-  },
-  {
-    id: "solarized-light",
-    name: "Solarized Light",
-    category: "Light",
-    background: "#FDF6E3",
-    surface: "#EEE8D5",
-    accent: "#268BD2",
-  },
-  {
-    id: "solarized-dark",
-    name: "Solarized Dark",
-    category: "Dark",
-    background: "#002B36",
-    surface: "#073642",
-    accent: "#2AA198",
+    background: "#18191F",
+    surface: "#202127",
+    accent: "#818CF8",
   },
 ];
 
@@ -112,6 +55,8 @@ function getInitialTheme(): ThemeId {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
 
+    if (saved === "light") return "github-light";
+
     if (themes.some((item) => item.id === saved)) {
       return saved as ThemeId;
     }
@@ -119,7 +64,7 @@ function getInitialTheme(): ThemeId {
     // Continue with the default if browser storage is unavailable.
   }
 
-  return "light";
+  return "github-light";
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);

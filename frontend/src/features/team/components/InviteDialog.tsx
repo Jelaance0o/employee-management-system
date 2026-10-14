@@ -8,7 +8,18 @@ import TeamFeedback from "./TeamFeedback";
 export default function InviteDialog({ open, busy, invitation, error, onDismissError, onClose, onSubmit, onCopy }: { open: boolean; busy: boolean; invitation: InvitationCreated | null; error: string; onDismissError: () => void; onClose: () => void; onSubmit: (email: string, role: TeamRole) => Promise<void>; onCopy: () => void }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TeamRole>("employee");
-  useEffect(() => { if (open && !invitation) { setEmail(""); setRole("employee"); } }, [open, invitation]);
+  useEffect(() => {
+    if (open && !invitation) {
+      setEmail("");
+      setRole("employee");
+    }
+
+    // Clear the submitted values only after the parent receives a successful API response.
+    if (open && invitation) {
+      setEmail("");
+      setRole("employee");
+    }
+  }, [open, invitation]);
   if (!open) return null;
   const submit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); await onSubmit(email, role); };
   return <TeamDialog title="Invite a teammate" description="Create an invitation link for someone to join your workspace." onClose={onClose}>

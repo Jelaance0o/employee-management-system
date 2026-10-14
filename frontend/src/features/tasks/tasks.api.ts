@@ -21,6 +21,17 @@ export async function getTaskProjects(): Promise<Project[]> {
   return response.data;
 }
 
+
+export async function getProjectMembers(projectId: number): Promise<TaskTeammate[]> {
+  const response = await api.get<TaskTeammate[]>(`/api/v1/projects/${projectId}/members`);
+  return response.data;
+}
+
+export async function getEligibleProjectAssignees(projectId: number): Promise<TaskTeammate[]> {
+  const response = await api.get<TaskTeammate[]>(`/api/v1/projects/${projectId}/eligible-assignees`);
+  return response.data;
+}
+
 export async function getTaskTeammates(): Promise<TaskTeammate[]> {
   const response = await api.get<TaskTeammate[]>("/api/v1/teammates", {
     params: { limit: 100, offset: 0 },

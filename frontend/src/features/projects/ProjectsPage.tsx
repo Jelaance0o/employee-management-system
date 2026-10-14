@@ -36,6 +36,8 @@ export default function ProjectsPage() {
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [memberUserId, setMemberUserId] = useState("");
+  const [availableMembers, setAvailableMembers] = useState<Teammate[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
   const [memberError, setMemberError] = useState("");
   const [memberSuccess, setMemberSuccess] = useState("");
@@ -66,6 +68,31 @@ export default function ProjectsPage() {
   }, [isAdmin]);
 
   useEffect(() => { void loadData(); }, [loadData, refreshKey]);
+  useEffect(() => {
+    let cancelled = false;
+    const loadAvailableMembers = async () => {
+      if (!selectedProject || !(isAdmin || (isProjectManager && selectedProject.project_manager_id === user?.id))) {
+        setAvailableMembers([]);
+        setLoadingMembers(false);
+        return;
+      }
+      setLoadingMembers(true);
+      try {
+        const response = await api.get<Teammate[]>(`/api/v1/projects/${selectedProject.id}/available-members`);
+        if (!cancelled) setAvailableMembers(response.data);
+      } catch (err) {
+        if (!cancelled) {
+          setAvailableMembers([]);
+          setMemberError(getErrorMessage(err));
+        }
+      } finally {
+        if (!cancelled) setLoadingMembers(false);
+      }
+    };
+    void loadAvailableMembers();
+    return () => { cancelled = true; };
+  }, [selectedProject, isAdmin, isProjectManager, user?.id]);
+
 
   useEffect(() => {
     if (!success) return;
@@ -133,19 +160,22 @@ export default function ProjectsPage() {
     setMemberSuccess("");
     if (!selectedProject) return;
     const userId = Number(memberUserId);
-    if (!Number.isInteger(userId) || userId <= 0) { setMemberError("Enter a valid teammate ID."); return; }
+    if (!Number.isInteger(userId) || userId <= 0) { setMemberError("Select a teammate by name."); return; }
     setAddingMember(true);
     try {
       await api.post(`/api/v1/projects/${selectedProject.id}/members`, { user_id: userId });
-      const teammate = teammates.find((item) => item.id === userId);
-      setMemberSuccess(teammate ? `${teammate.full_name} was added to the project.` : `Teammate ID ${userId} was added to the project.`);
+      const teammate = availableMembers.find((item) => item.id === userId);
+      setMemberSuccess(teammate ? `${teammate.full_name} was added to the project.` : "Teammate added to the project.");
       setMemberUserId("");
+      setAvailableMembers((current) => current.filter((item) => item.id !== userId));
     } catch (err) { setMemberError(getErrorMessage(err)); }
     finally { setAddingMember(false); }
   };
 
   const selectProject = (project: Project) => {
     setSelectedProject(project);
+    setMemberUserId("");
+    setAvailableMembers([]);
     setMemberError("");
     setMemberSuccess("");
   };
@@ -178,7 +208,7 @@ export default function ProjectsPage() {
       </section>
 
       {formOpen && <ProjectFormDialog editingProject={editingProject} form={form} teammates={teammates} saving={saving} error={formError} onClose={() => { if (!saving) setFormOpen(false); }} onSubmit={saveProject} onChange={updateForm} />}
-      {selectedProject && <ProjectDetailsDialog project={selectedProject} managerMap={managerMap} canManage={canManageProject(selectedProject)} isAdmin={isAdmin} teammates={teammates} memberUserId={memberUserId} addingMember={addingMember} memberError={memberError} memberSuccess={memberSuccess} onMemberUserIdChange={setMemberUserId} onAddMember={addProjectMember} onEdit={() => { const project = selectedProject; setSelectedProject(null); openEditForm(project); }} onClose={() => setSelectedProject(null)} />}
+      {selectedProject && <ProjectDetailsDialog project={selectedProject} managerMap={managerMap} canManage={canManageProject(selectedProject)} availableMembers={availableMembers} loadingMembers={loadingMembers} memberUserId={memberUserId} addingMember={addingMember} memberError={memberError} memberSuccess={memberSuccess} onMemberUserIdChange={setMemberUserId} onAddMember={addProjectMember} onEdit={() => { const project = selectedProject; setSelectedProject(null); openEditForm(project); }} onClose={() => setSelectedProject(null)} />}
     </main>
   );
 }

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
+    JSON,
     DateTime,
     ForeignKey,
     Integer,
@@ -55,6 +56,12 @@ class User(Base):
         default=True,
         nullable=False,
     )
+
+    department: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    job_title: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    bio: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    skills: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    tech_stack: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
