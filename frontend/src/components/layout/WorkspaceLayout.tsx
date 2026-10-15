@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { FolderKanban, LogOut, Menu, Users, X, CheckSquare, LayoutDashboard } from "lucide-react";
+import { FolderKanban, LogOut, Menu, Users, X, LayoutDashboard } from "lucide-react";
 import ThemeSelector from "../ThemeSelector";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -28,12 +28,6 @@ const navigation: NavigationItem[] = [
     label: "Projects",
     path: "/projects",
     icon: FolderKanban,
-    roles: ["admin", "project_manager", "employee"],
-  },
-  {
-    label: "Tasks",
-    path: "/tasks",
-    icon: CheckSquare,
     roles: ["admin", "project_manager", "employee"],
   },
 ];

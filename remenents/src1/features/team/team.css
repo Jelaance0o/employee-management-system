@@ -1,0 +1,17 @@
+/* Team page orchestration and responsive page layout */
+.ts-team-page { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.ts-team-page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.ts-team-page-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.ts-team-access { padding: 32px; border-radius: 12px; }
+.ts-team-panel { overflow: hidden; border-radius: 12px; }
+.ts-team-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px; border-bottom: 1px solid var(--ts-border); }
+.ts-team-search { display: flex; align-items: center; gap: 10px; width: min(100%, 360px); min-width: 180px; padding: 0 12px; border: 1px solid var(--ts-border-strong); border-radius: 10px; color: var(--ts-text-muted); background: var(--ts-surface); }
+.ts-team-search:focus-within { border-color: var(--ts-focus); box-shadow: 0 0 0 3px var(--ts-accent-soft); }
+.ts-team-search input { width: 100%; min-width: 0; padding: 10px 0; border: 0; outline: 0; color: var(--ts-text); background: transparent; font: inherit; font-size: 13px; }
+.ts-team-search input::placeholder { color: var(--ts-text-muted); }
+.ts-team-role-filter { display: flex; align-items: center; gap: 10px; }
+.ts-team-state { display: flex; min-height: 250px; align-items: center; justify-content: center; gap: 12px; color: var(--ts-text-muted); }
+.ts-team-empty { flex-direction: column; padding: 36px 20px; text-align: center; }
+.ts-team-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--ts-border); }
+.ts-team-page button:focus-visible, .ts-team-page input:focus-visible, .ts-team-page select:focus-visible { outline: 2px solid var(--ts-focus); outline-offset: 2px; }
+@media (max-width: 680px) { .ts-team-page { gap: 18px; } .ts-team-page-header { align-items: stretch; flex-direction: column; } .ts-team-page-actions { justify-content: flex-start; } .ts-team-toolbar { align-items: stretch; flex-direction: column; } .ts-team-search { width: 100%; } .ts-team-role-filter { justify-content: space-between; } .ts-team-pagination { align-items: flex-start; flex-direction: column; } .ts-team-pagination > div { width: 100%; justify-content: space-between; } }

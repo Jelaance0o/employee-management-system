@@ -1,0 +1,106 @@
+@media (max-width: 1050px) {
+  .ts-project-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .ts-projects-page {
+    gap: 18px;
+  }
+
+  .ts-projects-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ts-projects-heading-actions {
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+
+  .ts-project-toolbar {
+    align-items: stretch;
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  .ts-project-search {
+    flex-basis: 100%;
+  }
+
+  .ts-project-filter {
+    flex: 1 1 0;
+    justify-content: space-between;
+  }
+
+  .ts-project-filter select {
+    max-width: 130px;
+  }
+
+  .ts-project-list-heading {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  .ts-project-table th:first-child,
+  .ts-project-table td:first-child {
+    padding-left: 15px;
+  }
+
+  .ts-project-form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 17px;
+  }
+
+  .ts-project-field-full {
+    grid-column: auto;
+  }
+
+  .ts-project-form-footer {
+    grid-column: auto;
+  }
+
+  .ts-project-detail {
+    padding: 17px;
+  }
+
+  .ts-project-member-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ts-project-member-submit {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .ts-project-stats {
+    gap: 10px;
+  }
+
+  .ts-project-stat {
+    padding: 13px;
+  }
+
+  .ts-project-stat-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .ts-project-stat > strong {
+    font-size: 25px;
+  }
+
+  .ts-project-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ts-project-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

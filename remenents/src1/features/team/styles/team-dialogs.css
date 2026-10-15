@@ -1,0 +1,7 @@
+/* Team dialog layout */
+.ts-team-dialog { width: min(100%, 540px); max-height: min(88vh, 820px); overflow-y: auto; }
+.ts-team-dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.ts-team-dialog-content { margin-top: 24px; }
+.ts-team-dialog-content form { display: flex; flex-direction: column; gap: 16px; }
+.ts-team-dialog-content input, .ts-team-dialog-content select { min-width: 0; }
+@media (max-width: 520px) { .ts-team-dialog { padding: 18px; } .ts-team-dialog-content { margin-top: 18px; } }

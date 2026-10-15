@@ -109,3 +109,8 @@
   }
 }
 
+
+
+.ts-project-task-expansion{animation:ts-project-task-expand 180ms ease-out both;transform-origin:top center}
+@keyframes ts-project-task-expand{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.ts-project-task-expansion{animation:none}}

@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -53,8 +54,10 @@ function getErrorMessage(error: unknown): string {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const sessionVersion = useRef(0);
 
   const login = useCallback(async (email: string, password: string) => {
+    sessionVersion.current += 1;
     try {
       const response = await api.post<User>("/api/v1/auth/login", {
         email,
@@ -68,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    sessionVersion.current += 1;
     try {
       await api.post("/api/v1/auth/logout");
     } finally {
@@ -79,14 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function restoreSession() {
+      const versionAtStart = sessionVersion.current;
       try {
         const response = await api.get<User>("/api/v1/auth/me");
 
-        if (!cancelled) {
+        if (!cancelled && sessionVersion.current === versionAtStart) {
           setUser(response.data);
         }
       } catch {
-        if (!cancelled) {
+        if (!cancelled && sessionVersion.current === versionAtStart) {
           setUser(null);
         }
       } finally {

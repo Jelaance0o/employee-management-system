@@ -7,8 +7,9 @@ class TeammateRoleUpdate(BaseModel):
     role: Literal["admin", "project_manager", "employee"]
 
 from datetime import date, datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.auth import UserResponse
+from app.schemas.task_report import TaskReportResponse
 
 
 class MemberProjectSummary(BaseModel):
@@ -38,6 +39,7 @@ class MemberTaskStats(BaseModel):
 
 
 class ManagerMemberDetail(UserResponse):
-    projects: list[MemberProjectSummary] = []
+    projects: list[MemberProjectSummary] = Field(default_factory=list)
     task_stats: MemberTaskStats
-    recent_tasks: list[MemberTaskSummary] = []
+    recent_tasks: list[MemberTaskSummary] = Field(default_factory=list)
+    recent_reports: list[TaskReportResponse] = Field(default_factory=list)

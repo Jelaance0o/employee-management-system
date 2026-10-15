@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MailPlus, RefreshCw, ShieldCheck } from "lucide-react";
+import { LoaderCircle, MailPlus, RefreshCw, ShieldCheck } from "lucide-react";
 import api from "../../lib/api";
 import { useAuth } from "../../contexts/AuthContext";
 import TeamFeedback from "./components/TeamFeedback";
 import ManagerMembersPage from "./ManagerMembersPage";
+import MemberDetailsView, { type MemberDetail } from "./MemberDetailsView";
 import TeamStats from "./components/TeamStats";
 import TeamFilters from "./components/TeamFilters";
 import TeamTable from "./components/TeamTable";
@@ -40,6 +41,8 @@ export default function TeamPage() {
   const [deactivateTarget, setDeactivateTarget] = useState<Teammate | null>(
     null,
   );
+  const [selectedMember, setSelectedMember] = useState<MemberDetail | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const loadTeammates = useCallback(async () => {
     setLoading(true);
@@ -85,6 +88,19 @@ export default function TeamPage() {
     setError("");
     setNotice(message);
   };
+
+  async function handleViewDetails(teammate: Teammate) {
+    setProfileLoading(true);
+    setError("");
+    try {
+      const response = await api.get<MemberDetail>(`/api/v1/teammates/${teammate.id}/details`);
+      setSelectedMember(response.data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setProfileLoading(false);
+    }
+  }
 
   async function handleInvite(email: string, role: TeamRole) {
     setBusy(true);
@@ -167,6 +183,14 @@ export default function TeamPage() {
         </p>
       </section>
     );
+
+  if (selectedMember) {
+    return <MemberDetailsView member={selectedMember} onBack={() => setSelectedMember(null)} backLabel="Back to team members" />;
+  }
+
+  if (profileLoading) {
+    return <section className="ts-page ts-team-page"><div className="ts-team-state"><LoaderCircle className="animate-spin ts-accent" size={24} /><span className="text-sm ts-secondary">Loading teammate details...</span></div></section>;
+  }
 
   return (
     <section className="ts-page ts-team-page">
@@ -255,6 +279,7 @@ export default function TeamPage() {
             setInviteOpen(true);
             setError("");
           }}
+          onViewDetails={(teammate) => void handleViewDetails(teammate)}
           onChangeRole={(teammate) => {
             setRoleTarget(teammate);
             setError("");

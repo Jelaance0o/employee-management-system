@@ -56,6 +56,11 @@ class TaskResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+    project_name: str | None = None
+    created_by_name: str | None = None
+    assigned_to_name: str | None = None
+    project_manager_id: int | None = None
+    project_manager_name: str | None = None
 
 
 class TaskAssigneeResponse(BaseModel):
