@@ -25,9 +25,12 @@ export interface Task {
   completed_at: string | null;
   project_name?: string | null;
   created_by_name?: string | null;
+  created_by_profile_picture_url?: string | null;
   assigned_to_name?: string | null;
+  assigned_to_profile_picture_url?: string | null;
   project_manager_id?: number | null;
   project_manager_name?: string | null;
+  project_manager_profile_picture_url?: string | null;
 }
 
 export interface TaskTeammate {
@@ -36,6 +39,7 @@ export interface TaskTeammate {
   email: string;
   role: "admin" | "project_manager" | "employee";
   is_active: boolean;
+  profile_picture_url?: string | null;
 }
 
 export interface TaskFormValues {

@@ -1,5 +1,5 @@
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Project, ProjectMember, User
@@ -67,17 +67,13 @@ def list_projects(
         Project.workspace_id == user.workspace_id
     )
 
-    if user.role != "admin":
-        membership_project_ids = select(
-            ProjectMember.project_id
-        ).where(ProjectMember.user_id == user.id)
-
-        statement = statement.where(
-            or_(
-                Project.project_manager_id == user.id,
-                Project.id.in_(membership_project_ids),
-            )
+    if user.role == "project_manager":
+        statement = statement.where(Project.project_manager_id == user.id)
+    elif user.role != "admin":
+        membership_project_ids = select(ProjectMember.project_id).where(
+            ProjectMember.user_id == user.id
         )
+        statement = statement.where(Project.id.in_(membership_project_ids))
 
     statement = (
         statement.order_by(Project.created_at.desc(), Project.id.desc())
@@ -103,8 +99,8 @@ def get_project_for_user(
     if project is None or user.role == "admin":
         return project
 
-    if project.project_manager_id == user.id:
-        return project
+    if user.role == "project_manager":
+        return project if project.project_manager_id == user.id else None
 
     membership = db.scalar(
         select(ProjectMember.project_id).where(
@@ -159,12 +155,13 @@ def add_project_member(
             User.id == user_id,
             User.workspace_id == project.workspace_id,
             User.is_active.is_(True),
+            User.role == "employee",
         )
     )
 
     if user is None:
         raise ValueError(
-            "Active teammate not found in this workspace."
+            "Only active regular Members in this workspace can be added to a project."
         )
 
     existing = db.get(ProjectMember, (project.id, user.id))

@@ -25,11 +25,8 @@ def get_project_access(
     if user.role == "admin":
         return project
 
-    if (
-        user.role == "project_manager"
-        and project.project_manager_id == user.id
-    ):
-        return project
+    if user.role == "project_manager":
+        return project if project.project_manager_id == user.id else None
 
     membership = db.scalar(
         select(ProjectMember.project_id).where(
@@ -84,10 +81,11 @@ def create_task(
     if project is None:
         raise PermissionError("You do not have access to this project.")
 
+    if user.role == "project_manager" and project.project_manager_id != user.id:
+        raise PermissionError("You can create tasks only in projects assigned to you.")
+
     if user.role not in ("admin", "project_manager"):
         raise PermissionError("Only Admins and Project Managers can create tasks.")
-    if user.role == "project_manager" and project.project_manager_id != user.id:
-        raise PermissionError("Only the assigned Project Manager can create tasks in this project.")
 
     validate_assignee(db, project, payload.assigned_to_id)
 
@@ -130,27 +128,15 @@ def list_tasks(
         project = get_project_access(db, user, project_id)
         if project is None:
             return []
-
         statement = statement.where(Task.project_id == project_id)
-        # A project member must not be able to list other teammates' tasks
-        # by adding a project_id filter to the task endpoint.
-        if user.role == "employee" or (
-            user.role == "project_manager" and project.project_manager_id != user.id
-        ):
+        if user.role == "employee":
             statement = statement.where(Task.assigned_to_id == user.id)
-
     elif user.role == "project_manager":
         managed_projects = select(Project.id).where(
             Project.workspace_id == user.workspace_id,
             Project.project_manager_id == user.id,
         )
-        # Project Managers see every task in projects they manage, plus only
-        # their own assigned tasks elsewhere in the workspace.
-        statement = statement.where(
-            Task.project_id.in_(managed_projects)
-            | (Task.assigned_to_id == user.id)
-        )
-
+        statement = statement.where(Task.project_id.in_(managed_projects))
     elif user.role != "admin":
         statement = statement.where(Task.assigned_to_id == user.id)
 
@@ -188,13 +174,10 @@ def get_task_for_user(
     if project is None:
         return None
 
-    if (
-        user.role == "project_manager"
-        and project.project_manager_id == user.id
-    ):
-        return task
+    if user.role == "project_manager":
+        return task if project.project_manager_id == user.id else None
 
-    if task.assigned_to_id == user.id:
+    if user.role == "employee" and task.assigned_to_id == user.id:
         return task
 
     return None

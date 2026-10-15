@@ -2,26 +2,26 @@
 from typing import Annotated
 
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import base64
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import or_, select
-from app.dependencies.auth import DbSession, get_current_user, require_roles
-from app.models import Project, ProjectMember, Task, TaskReport, User
+from sqlalchemy.orm import Session
+
+from app.dependencies.auth import DbSession, require_roles
+from app.models.user import User
+from app.models import Project, ProjectMember, Task
 from app.schemas.auth import UserResponse
-from app.schemas.profile import UserProfileUpdate
-from app.schemas.teammate import (
-    ManagerMemberDetail,
-    MemberProjectSummary,
-    MemberTaskStats,
-    MemberTaskSummary,
-    TeammateRoleUpdate,
-)
+from app.schemas.teammate import TeammateRoleUpdate, ManagerMemberDetail, MemberProjectSummary, MemberTaskSummary, MemberTaskStats
 from app.services.teammate_service import (
     deactivate_teammate,
     get_teammate,
     list_teammates,
 )
 
+from app.schemas.teammate import TeammateRoleUpdate
 from app.services.teammate_service import update_teammate_role
+from app.schemas.profile import UserProfileUpdate
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/teammates", tags=["Teammates"])
 
@@ -33,8 +33,17 @@ ManagerUser = Annotated[User, Depends(require_roles("project_manager"))]
 @router.patch("/me/profile", response_model=UserResponse)
 def update_my_profile(payload: UserProfileUpdate, user: CurrentUser, db: DbSession):
     values = payload.model_dump(exclude_unset=True)
+    picture_data = values.pop("profile_picture_data", ...)
     for field, value in values.items():
         setattr(user, field, value)
+    if picture_data is not ...:
+        if picture_data is None:
+            user.profile_picture = None
+            user.profile_picture_content_type = None
+        else:
+            header, encoded = picture_data.split(",", 1)
+            user.profile_picture = base64.b64decode(encoded, validate=True)
+            user.profile_picture_content_type = header.removeprefix("data:").removesuffix(";base64")
     try:
         db.commit()
         db.refresh(user)
@@ -42,6 +51,20 @@ def update_my_profile(payload: UserProfileUpdate, user: CurrentUser, db: DbSessi
     except Exception:
         db.rollback()
         raise
+
+
+@router.get("/{user_id}/profile-picture")
+def get_profile_picture(user_id: int, user: CurrentUser, db: DbSession):
+    picture_owner = db.scalar(
+        select(User).where(User.id == user_id, User.workspace_id == user.workspace_id, User.is_active.is_(True))
+    )
+    if picture_owner is None or not picture_owner.profile_picture or not picture_owner.profile_picture_content_type:
+        raise HTTPException(status_code=404, detail="Profile picture not found.")
+    return Response(
+        content=picture_owner.profile_picture,
+        media_type=picture_owner.profile_picture_content_type,
+        headers={"Cache-Control": "private, no-cache, must-revalidate", "X-Content-Type-Options": "nosniff"},
+    )
 
 
 @router.get("/manager/members", response_model=list[UserResponse])
@@ -55,7 +78,7 @@ def get_manager_members(manager: ManagerUser, db: DbSession):
             Project.project_manager_id == manager.id,
             User.workspace_id == manager.workspace_id,
             User.is_active.is_(True),
-            User.role != "admin",
+            User.role == "employee",
             User.id != manager.id,
         )
         .distinct()
@@ -71,7 +94,7 @@ def get_manager_member_detail(user_id: int, manager: ManagerUser, db: DbSession)
             User.id == user_id,
             User.workspace_id == manager.workspace_id,
             User.is_active.is_(True),
-            User.role != "admin",
+            User.role == "employee",
             User.id != manager.id,
             select(ProjectMember.user_id)
             .join(Project, Project.id == ProjectMember.project_id)
@@ -113,118 +136,10 @@ def get_manager_member_detail(user_id: int, manager: ManagerUser, db: DbSession)
     completed = sum(task.status == "Done" for task in tasks)
     overdue = sum(task.status != "Done" and task.due_date is not None and task.due_date < today for task in tasks)
     result = UserResponse.model_validate(member).model_dump()
-    task_ids = [task.id for task in tasks]
-    reports = []
-    if task_ids:
-        reports = list(db.scalars(
-            select(TaskReport)
-            .where(
-                TaskReport.workspace_id == manager.workspace_id,
-                TaskReport.task_id.in_(task_ids),
-            )
-            .order_by(TaskReport.created_at.desc(), TaskReport.id.desc())
-            .limit(10)
-        ).all())
-
     result.update({
         "projects": [MemberProjectSummary(id=p.id, name=p.name, status=p.status, priority=p.priority, due_date=p.due_date).model_dump() for p in projects],
         "task_stats": MemberTaskStats(total=len(tasks), completed=completed, pending=len(tasks)-completed, overdue=overdue).model_dump(),
         "recent_tasks": [MemberTaskSummary(id=t.id, title=t.title, status=t.status, priority=t.priority, due_date=t.due_date, project_id=t.project_id, project_name=t.project.name, updated_at=t.updated_at).model_dump() for t in tasks[:10]],
-        "recent_reports": reports,
-    })
-    return result
-
-
-@router.get("/{user_id}/details", response_model=ManagerMemberDetail)
-def get_teammate_details_with_work_overview(
-    user_id: int,
-    admin: AdminUser,
-    db: DbSession,
-):
-    """Return a minimal profile and work overview for an Admin's workspace teammate."""
-    member = db.scalar(
-        select(User).where(
-            User.id == user_id,
-            User.workspace_id == admin.workspace_id,
-        )
-    )
-    if member is None:
-        raise HTTPException(status_code=404, detail="Teammate not found.")
-
-    projects = list(db.scalars(
-        select(Project)
-        .outerjoin(ProjectMember, ProjectMember.project_id == Project.id)
-        .where(
-            Project.workspace_id == admin.workspace_id,
-            or_(
-                Project.project_manager_id == member.id,
-                ProjectMember.user_id == member.id,
-            ),
-        )
-        .distinct()
-        .order_by(Project.name.asc(), Project.id.asc())
-    ).all())
-
-    tasks = list(db.scalars(
-        select(Task)
-        .where(
-            Task.workspace_id == admin.workspace_id,
-            Task.assigned_to_id == member.id,
-        )
-        .order_by(Task.updated_at.desc(), Task.id.desc())
-    ).all())
-
-    today = date.today()
-    completed = sum(task.status == "Done" for task in tasks)
-    overdue = sum(
-        task.status != "Done" and task.due_date is not None and task.due_date < today
-        for task in tasks
-    )
-    task_ids = [task.id for task in tasks]
-    reports = []
-    if task_ids:
-        reports = list(db.scalars(
-            select(TaskReport)
-            .where(
-                TaskReport.workspace_id == admin.workspace_id,
-                TaskReport.task_id.in_(task_ids),
-            )
-            .order_by(TaskReport.created_at.desc(), TaskReport.id.desc())
-            .limit(10)
-        ).all())
-
-    result = UserResponse.model_validate(member).model_dump()
-    result.update({
-        "projects": [
-            MemberProjectSummary(
-                id=project.id,
-                name=project.name,
-                status=project.status,
-                priority=project.priority,
-                due_date=project.due_date,
-            ).model_dump()
-            for project in projects
-        ],
-        "task_stats": MemberTaskStats(
-            total=len(tasks),
-            completed=completed,
-            pending=len(tasks) - completed,
-            overdue=overdue,
-        ).model_dump(),
-        "recent_tasks": [
-            MemberTaskSummary(
-                id=task.id,
-                title=task.title,
-                status=task.status,
-                priority=task.priority,
-                due_date=task.due_date,
-                project_id=task.project_id,
-                project_name=task.project.name,
-                updated_at=task.updated_at,
-            ).model_dump()
-            for task in tasks[:10]
-        ],
-        "recent_reports": reports,
     })
     return result
 

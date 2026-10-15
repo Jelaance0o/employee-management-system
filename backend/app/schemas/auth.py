@@ -22,6 +22,7 @@ class UserResponse(BaseModel):
     bio: str | None = None
     skills: list[str] | None = None
     tech_stack: list[str] | None = None
+    profile_picture_url: str | None = None
     created_at: datetime
 
 

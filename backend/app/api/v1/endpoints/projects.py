@@ -95,6 +95,11 @@ def update_project_endpoint(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only an Admin or the assigned project manager can update this project.",
         )
+    if user.role != "admin" and "project_manager_id" in payload.model_fields_set:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Admins can assign or change a project's manager.",
+        )
 
     try:
         return update_project(db, project, payload)
@@ -198,10 +203,10 @@ def list_project_members_endpoint(
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    if user.role != "admin" and project.project_manager_id != user.id:
+    if user.role != "admin":
         raise HTTPException(
             status_code=403,
-            detail="Only an Admin or the assigned project manager can list project members.",
+            detail="Only Admins can manage project membership.",
         )
 
     members = list(
@@ -246,10 +251,10 @@ def list_available_project_members_endpoint(
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found.")
 
-    if user.role != "admin" and project.project_manager_id != user.id:
+    if user.role != "admin":
         raise HTTPException(
             status_code=403,
-            detail="Only an Admin or the assigned project manager can add project members.",
+            detail="Only Admins can add project members.",
         )
 
     member_ids = select(ProjectMember.user_id).where(
@@ -258,6 +263,7 @@ def list_available_project_members_endpoint(
     statement = select(User).where(
         User.workspace_id == project.workspace_id,
         User.is_active.is_(True),
+        User.role == "employee",
         ~User.id.in_(member_ids),
     )
     if project.project_manager_id is not None:
@@ -287,10 +293,10 @@ def add_project_member_endpoint(
             detail="Project not found.",
         )
 
-    if user.role != "admin" and project.project_manager_id != user.id:
+    if user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only an Admin or the assigned project manager can add project members.",
+            detail="Only Admins can add project members.",
         )
 
     try:

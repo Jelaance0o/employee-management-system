@@ -58,9 +58,12 @@ class TaskResponse(BaseModel):
     completed_at: datetime | None
     project_name: str | None = None
     created_by_name: str | None = None
+    created_by_profile_picture_url: str | None = None
     assigned_to_name: str | None = None
+    assigned_to_profile_picture_url: str | None = None
     project_manager_id: int | None = None
     project_manager_name: str | None = None
+    project_manager_profile_picture_url: str | None = None
 
 
 class TaskAssigneeResponse(BaseModel):
@@ -73,4 +76,5 @@ class TaskAssigneeResponse(BaseModel):
     email: str
     role: str
     is_active: bool
+    profile_picture_url: str | None = None
 

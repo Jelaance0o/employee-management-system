@@ -355,3 +355,24 @@ body {
   font-weight: 400;
   line-height: 1.5;
 }
+
+.ts-sidebar-project-tree{max-height:34vh;overflow-y:auto;margin:17px 12px 12px;padding:0 4px 8px;scrollbar-width:thin;scrollbar-color:var(--ts-border-strong) transparent}
+.ts-sidebar-project-tree::-webkit-scrollbar{width:5px}.ts-sidebar-project-tree::-webkit-scrollbar-thumb{border-radius:999px;background:var(--ts-border-strong)}
+.ts-sidebar-project-row{display:flex;align-items:center;gap:2px;min-width:0;border-radius:8px}
+.ts-sidebar-project-row:hover{background:var(--ts-surface-muted)}
+.ts-sidebar-project-link{display:block;min-width:0;flex:1;overflow:hidden;padding:7px 8px;color:var(--ts-text-secondary);font-size:11px;text-overflow:ellipsis;white-space:nowrap;border-radius:8px}
+.ts-sidebar-project-link:hover{color:var(--ts-accent)}
+.ts-sidebar-project-toggle{display:grid;width:28px;height:28px;flex:0 0 auto;place-items:center;border:0;border-radius:7px;background:transparent;color:var(--ts-text-muted);cursor:pointer}
+.ts-sidebar-project-toggle:hover{background:var(--ts-surface-muted);color:var(--ts-text)}
+.ts-sidebar-project-tasks{display:flex;flex-direction:column;gap:2px;margin:2px 0 6px 8px;padding-left:10px;border-left:1px solid var(--ts-border)}
+.ts-sidebar-task-link{display:flex;align-items:center;gap:7px;min-width:0;padding:6px 7px;border-radius:7px;color:var(--ts-text-muted);font-size:10px;line-height:1.35}
+.ts-sidebar-task-link:hover{background:var(--ts-surface-muted);color:var(--ts-accent)}
+.ts-sidebar-task-link{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts-sidebar-task-dot{width:6px;height:6px;flex:0 0 auto;border-radius:50%;background:var(--ts-text-muted)}
+.ts-sidebar-task-dot.status-done{background:var(--ts-success)}.ts-sidebar-task-dot.status-in-progress{background:var(--ts-accent)}.ts-sidebar-task-dot.status-in-review{background:var(--ts-chart-4)}.ts-sidebar-task-dot.status-changes-required{background:var(--ts-danger)}
+.ts-sidebar-no-tasks,.ts-sidebar-more-tasks{padding:5px 7px;color:var(--ts-text-muted);font-size:10px}.ts-sidebar-more-tasks{color:var(--ts-accent);font-weight:650}
+
+/* Shared profile avatars are used in team, project, and task views. */
+.ts-avatar{display:inline-flex;width:40px;height:40px;flex-shrink:0;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--ts-border);border-radius:12px;background:var(--ts-accent-soft);color:var(--ts-accent);font-size:13px;font-weight:650}
+.ts-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.ts-avatar-sm{width:24px;height:24px;border-radius:8px;font-size:9px}

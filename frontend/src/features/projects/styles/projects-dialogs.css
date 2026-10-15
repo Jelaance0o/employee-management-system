@@ -219,3 +219,23 @@
   animation: ts-project-spin 900ms linear infinite;
 }
 
+
+.ts-project-readonly-manager{min-height:42px;display:flex;align-items:center;padding:10px 12px;border:1px solid var(--ts-border);border-radius:10px;background:var(--ts-surface-muted);color:var(--ts-text);font-size:13px}
+.ts-project-task-overview,.ts-project-members-section{margin-top:22px;padding-top:20px;border-top:1px solid var(--ts-border)}
+.ts-project-task-count{display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:25px;padding:0 7px;border:1px solid var(--ts-border);border-radius:8px;color:var(--ts-text-muted);font-size:11px;font-weight:700}
+.ts-project-task-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}
+.ts-project-task-stats article{display:flex;min-width:0;flex-direction:column;gap:5px;padding:11px;border:1px solid var(--ts-border);border-radius:12px;background:var(--ts-surface-muted)}
+.ts-project-task-stats span{color:var(--ts-text-muted);font-size:10px}.ts-project-task-stats strong{color:var(--ts-text);font-size:20px;font-weight:800}
+.ts-project-progress-summary{margin-top:14px}.ts-project-progress-summary>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;color:var(--ts-text-secondary);font-size:11px}.ts-project-progress-summary strong{color:var(--ts-text);font-size:12px}
+.ts-project-progress-track{height:8px;overflow:hidden;border-radius:999px;background:var(--ts-surface-muted)}.ts-project-progress-track span{display:block;height:100%;border-radius:inherit;background:var(--ts-success);transition:width .18s ease}
+.ts-project-detail-task-list{display:flex;flex-direction:column;margin-top:13px;border-top:1px solid var(--ts-border)}
+.ts-project-detail-task{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--ts-border);background:transparent;text-align:left;cursor:pointer}
+.ts-project-detail-task:hover .ts-project-detail-task-main strong{color:var(--ts-accent)}
+.ts-project-detail-task-main{display:flex;min-width:0;flex-direction:column;gap:5px}.ts-project-detail-task-main strong{color:var(--ts-text);font-size:12px;overflow-wrap:anywhere}.ts-project-detail-task-main small{color:var(--ts-text-muted);font-size:10px;overflow-wrap:anywhere}
+.ts-project-detail-task-badges{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px}.ts-project-detail-task-badges .ts-status{max-width:none}
+.ts-project-task-state{display:flex;align-items:center;gap:9px;padding:17px 0;color:var(--ts-text-muted);font-size:12px}.ts-project-task-state.is-error{color:var(--ts-danger);flex-wrap:wrap}.ts-project-task-empty{padding:18px 0;color:var(--ts-text-muted);font-size:12px}
+.ts-project-member-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}.ts-project-member-row{display:flex;align-items:center;gap:9px;min-width:0;padding:10px;border:1px solid var(--ts-border);border-radius:11px;background:var(--ts-surface-muted)}.ts-project-member-row>span:last-child{display:flex;min-width:0;flex-direction:column;gap:3px}.ts-project-member-row strong{overflow:hidden;color:var(--ts-text);font-size:11px;text-overflow:ellipsis;white-space:nowrap}.ts-project-member-row small{overflow:hidden;color:var(--ts-text-muted);font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:600px){.ts-project-task-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ts-project-detail-task{align-items:flex-start;flex-direction:column}.ts-project-detail-task-badges{justify-content:flex-start}.ts-project-member-list{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.ts-project-progress-track span{transition:none}}
+
+.ts-project-manager-detail{display:flex;align-items:center;gap:8px}.ts-project-manager-detail img{width:24px;height:24px;flex:0 0 auto;border:1px solid var(--ts-border);border-radius:8px;object-fit:cover}

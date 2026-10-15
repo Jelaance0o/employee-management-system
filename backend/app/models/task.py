@@ -86,8 +86,16 @@ class Task(Base):
         return self.creator.full_name if self.creator else None
 
     @property
+    def created_by_profile_picture_url(self) -> str | None:
+        return self.creator.profile_picture_url if self.creator else None
+
+    @property
     def assigned_to_name(self) -> str | None:
         return self.assignee.full_name if self.assignee else None
+
+    @property
+    def assigned_to_profile_picture_url(self) -> str | None:
+        return self.assignee.profile_picture_url if self.assignee else None
 
     @property
     def project_manager_id(self) -> int | None:
@@ -97,6 +105,11 @@ class Task(Base):
     def project_manager_name(self) -> str | None:
         manager = self.project.project_manager if self.project else None
         return manager.full_name if manager else None
+
+    @property
+    def project_manager_profile_picture_url(self) -> str | None:
+        manager = self.project.project_manager if self.project else None
+        return manager.profile_picture_url if manager else None
 
     __table_args__ = (
         Index("ix_tasks_workspace_status", "workspace_id", "status"),

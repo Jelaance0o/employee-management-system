@@ -4,6 +4,7 @@ import type { Project, Task, TaskFormValues, TaskPriority, TaskTeammate } from "
 import { EMPTY_TASK_FORM, TASK_PRIORITIES } from "../tasks.types";
 import { getTaskErrorMessage } from "../tasks.utils";
 import { createTask, getEligibleProjectAssignees, updateTask } from "../tasks.api";
+import { Avatar } from "../../team/components/TeamBadges";
 
 interface Props {
   task?: Task | null;
@@ -41,6 +42,8 @@ export default function TaskFormDialog({ task, projects, onClose, onSaved }: Pro
     return () => { cancelled = true; };
   }, [values.project_id]);
 
+  const selectedAssignee = projectTeammates.find((person) => String(person.id) === values.assigned_to_id);
+
   const setField = <K extends keyof TaskFormValues>(key: K, value: TaskFormValues[K]) => setValues((current) => ({ ...current, [key]: value }));
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -77,7 +80,7 @@ export default function TaskFormDialog({ task, projects, onClose, onSaved }: Pro
         <label className="ts-task-field ts-task-field-full"><span>Description</span><textarea rows={4} maxLength={5000} value={values.description} onChange={(event) => setField("description", event.target.value)} placeholder="Describe the expected outcome..." /><small>{values.description.length}/5000 characters</small></label>
         <label className="ts-task-field"><span>Priority</span><select value={values.priority} onChange={(event) => setField("priority", event.target.value as TaskPriority)}>{TASK_PRIORITIES.map((priority) => <option key={priority} value={priority}>{priority[0].toUpperCase() + priority.slice(1)}</option>)}</select></label>
         <label className="ts-task-field"><span>Due date</span><input type="date" value={values.due_date} onChange={(event) => setField("due_date", event.target.value)} /></label>
-        <label className="ts-task-field ts-task-field-full"><span>Assignee</span><select value={values.assigned_to_id} onChange={(event) => setField("assigned_to_id", event.target.value)} disabled={loadingProjectTeammates || !values.project_id || Boolean(teammateError)}><option value="">{loadingProjectTeammates ? "Loading eligible teammates…" : "Unassigned"}</option>{projectTeammates.map((person) => <option key={person.id} value={person.id}>{person.full_name} — {person.email}</option>)}</select><small>{teammateError || (values.project_id && !loadingProjectTeammates && projectTeammates.length === 0 ? "No eligible teammates are assigned to this project. Add an active Member to assign a task." : "Only active Members assigned to this project can be selected.")}</small></label>
+        <label className="ts-task-field ts-task-field-full"><span>Assignee</span><select value={values.assigned_to_id} onChange={(event) => setField("assigned_to_id", event.target.value)} disabled={loadingProjectTeammates || !values.project_id || Boolean(teammateError)}><option value="">{loadingProjectTeammates ? "Loading eligible teammates…" : "Unassigned"}</option>{projectTeammates.map((person) => <option key={person.id} value={person.id}>{person.full_name} — {person.email}</option>)}</select><small>{teammateError || (values.project_id && !loadingProjectTeammates && projectTeammates.length === 0 ? "No eligible teammates are assigned to this project. Add an active Member to assign a task." : "Only active Members assigned to this project can be selected.")}</small>{selectedAssignee && <div className="ts-task-assignee-preview"><Avatar name={selectedAssignee.full_name} profilePictureUrl={selectedAssignee.profile_picture_url} size="small" /><span><strong>{selectedAssignee.full_name}</strong><small>{selectedAssignee.email}</small></span></div>}</label>
         <footer className="ts-task-form-footer"><button type="button" className="ts-button-secondary" onClick={onClose} disabled={saving}>Cancel</button><button type="submit" className="ts-button-primary" disabled={saving || (!task && projects.length === 0)}>{saving ? <LoaderCircle className="ts-task-spin" size={16} /> : <Check size={16} />}{saving ? "Saving..." : task ? "Save changes" : "Create task"}</button></footer>
       </form>
     </section>

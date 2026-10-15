@@ -9,6 +9,9 @@ export interface Teammate {
   role: TeamRole;
   is_active: boolean;
   created_at: string;
+  department?: string | null;
+  job_title?: string | null;
+  profile_picture_url?: string | null;
 }
 
 export interface InvitationCreated {

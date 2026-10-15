@@ -1,8 +1,12 @@
 import { ROLE_LABELS, type TeamRole } from "../team.types";
 
-export function Avatar({ name }: { name: string }) {
+import { getApiUrl } from "../../../lib/api";
+
+export function Avatar({ name, profilePictureUrl, size = "regular" }: { name: string; profilePictureUrl?: string | null; size?: "regular" | "small" }) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
-  return <div className="ts-avatar" aria-hidden="true">{initials || "U"}</div>;
+  return <span className={`ts-avatar ${size === "small" ? "ts-avatar-sm" : ""}`} aria-label={name}>
+    {profilePictureUrl ? <img src={getApiUrl(profilePictureUrl)} alt="" crossOrigin="use-credentials" loading="lazy" /> : initials || "U"}
+  </span>;
 }
 
 export function RoleBadge({ role }: { role: TeamRole }) {
