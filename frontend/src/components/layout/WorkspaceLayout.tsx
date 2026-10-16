@@ -1,36 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-  Navigate,
-  NavLink,
-  Outlet,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import {
-  FolderKanban,
-  LogOut,
-  Menu,
-  Users,
-  X,
-  CheckSquare,
-  LayoutDashboard,
-} from "lucide-react";
+import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Camera, ClipboardList, FolderKanban, LogOut, Menu, Users, X, LayoutDashboard } from "lucide-react";
 import ThemeSelector from "../ThemeSelector";
-import api, { getApiUrl } from "../../lib/api";
+import AuthenticatedProfileImage from "../AuthenticatedProfileImage";
 import { useAuth } from "../../contexts/AuthContext";
-
-interface SidebarProject {
-  id: number;
-  name: string;
-}
-interface SidebarTask {
-  id: number;
-  project_id: number;
-  title: string;
-  status: string;
-  priority: string;
-}
+import api from "../../lib/api";
 
 type NavigationItem = {
   label: string;
@@ -50,7 +24,13 @@ const navigation: NavigationItem[] = [
     label: "Team Members",
     path: "/team",
     icon: Users,
-    roles: ["admin"],
+    roles: ["admin", "project_manager"],
+  },
+  {
+    label: "Tasks",
+    path: "/tasks",
+    icon: ClipboardList,
+    roles: ["admin", "project_manager", "employee"],
   },
   {
     label: "Projects",
@@ -58,57 +38,22 @@ const navigation: NavigationItem[] = [
     icon: FolderKanban,
     roles: ["admin", "project_manager", "employee"],
   },
-  {
-    label: "Tasks",
-    path: "/tasks",
-    icon: CheckSquare,
-    roles: ["admin", "project_manager", "employee"],
-  },
 ];
 
 export default function WorkspaceLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [sidebarProjects, setSidebarProjects] = useState<SidebarProject[]>([]);
-  const [sidebarTasks, setSidebarTasks] = useState<SidebarTask[]>([]);
-  const [expandedProjectIds, setExpandedProjectIds] = useState<Set<number>>(
-    new Set(),
-  );
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [pictureVersion, setPictureVersion] = useState(0);
+  const [pictureUrl, setPictureUrl] = useState<string | null>(user?.profile_picture_url ?? null);
+  const [pictureBusy, setPictureBusy] = useState(false);
+  const [pictureMessage, setPictureMessage] = useState("");
 
   useEffect(() => {
-    if (!user) {
-      setSidebarProjects([]);
-      setSidebarTasks([]);
-      return;
-    }
-    let cancelled = false;
-    Promise.all([
-      api
-        .get<SidebarProject[]>("/api/v1/projects", {
-          params: { limit: 100, offset: 0 },
-        })
-        .then((response) => response.data)
-        .catch(() => [] as SidebarProject[]),
-      api
-        .get<SidebarTask[]>("/api/v1/tasks", {
-          params: { limit: 100, offset: 0 },
-        })
-        .then((response) => response.data)
-        .catch(() => [] as SidebarTask[]),
-    ]).then(([projects, tasks]) => {
-      if (!cancelled) {
-        setSidebarProjects(projects);
-        setSidebarTasks(tasks);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id, user?.role, location.pathname]);
+    setPictureUrl(user?.profile_picture_url ?? null);
+  }, [user?.id, user?.profile_picture_url]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -117,6 +62,35 @@ export default function WorkspaceLayout() {
   const visibleNavigation = navigation.filter((item) =>
     item.roles.includes(user.role),
   );
+
+  async function handleProfilePicture(file?: File) {
+    if (!file || !user) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.type)) {
+      setPictureMessage("Choose a PNG, JPEG, WebP, or GIF image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPictureMessage("Profile images must be 5 MB or smaller.");
+      return;
+    }
+    setPictureBusy(true);
+    setPictureMessage("");
+    try {
+      const response = await api.put<{ profile_picture_url?: string | null }>(
+        "/api/v1/teammates/me/picture",
+        file,
+        { headers: { "Content-Type": file.type } },
+      );
+      setPictureUrl(response.data.profile_picture_url ?? `/api/v1/teammates/${user.id}/picture`);
+      setPictureVersion(Date.now());
+      setPictureMessage("Profile picture updated.");
+    } catch {
+      setPictureMessage("Could not upload the profile picture. Please try again.");
+    } finally {
+      setPictureBusy(false);
+    }
+  }
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -161,8 +135,12 @@ export default function WorkspaceLayout() {
           </div>
 
           <div>
-            <h1 className="text-xl font-bold tracking-tight">TeamSpace</h1>
-            <p className="text-xs text-slate-500">Team workspace</p>
+            <h1 className="text-xl font-bold tracking-tight">
+              TeamSpace
+            </h1>
+            <p className="text-xs text-slate-500">
+              Team workspace
+            </p>
           </div>
 
           <button
@@ -204,112 +182,22 @@ export default function WorkspaceLayout() {
           </nav>
         </div>
 
-        {sidebarProjects.length > 0 && (
-          <div className="ts-sidebar-project-tree">
-            <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              {user.role === "admin" ? "Workspace projects" : "Your projects"}
-            </p>
-            <div className="mt-2 space-y-1">
-              {sidebarProjects.map((project) => {
-                const expanded = expandedProjectIds.has(project.id);
-                const projectTasks = sidebarTasks
-                  .filter((task) => task.project_id === project.id)
-                  .slice(0, 3);
-                return (
-                  <div className="ts-sidebar-project-node" key={project.id}>
-                    <div className="ts-sidebar-project-row">
-                      <NavLink
-                        to={`/projects?project=${project.id}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="ts-sidebar-project-link"
-                        title={project.name}
-                      >
-                        {project.name}
-                      </NavLink>
-                      <button
-                        type="button"
-                        className="ts-sidebar-project-toggle"
-                        aria-label={`${expanded ? "Collapse" : "Expand"} tasks for ${project.name}`}
-                        aria-expanded={expanded}
-                        onClick={() =>
-                          setExpandedProjectIds((current) => {
-                            const next = new Set(current);
-                            if (next.has(project.id)) next.delete(project.id);
-                            else next.add(project.id);
-                            return next;
-                          })
-                        }
-                      >
-                        {expanded ? (
-                          <ChevronDown size={14} />
-                        ) : (
-                          <ChevronRight size={14} />
-                        )}
-                      </button>
-                    </div>
-                    {expanded && (
-                      <div className="ts-sidebar-project-tasks">
-                        {projectTasks.length ? (
-                          projectTasks.map((task) => (
-                            <NavLink
-                              key={task.id}
-                              to={`/tasks?task_id=${task.id}&project_id=${project.id}`}
-                              onClick={() => setMobileMenuOpen(false)}
-                              className="ts-sidebar-task-link"
-                              title={task.title}
-                            >
-                              <span
-                                className={`ts-sidebar-task-dot status-${task.status.toLowerCase().replaceAll(" ", "-")}`}
-                              />
-                              {task.title}
-                            </NavLink>
-                          ))
-                        ) : (
-                          <p className="ts-sidebar-no-tasks">
-                            No visible tasks
-                          </p>
-                        )}
-                        {sidebarTasks.filter(
-                          (task) => task.project_id === project.id,
-                        ).length > 3 && (
-                          <NavLink
-                            className="ts-sidebar-more-tasks"
-                            to={`/tasks?project_id=${project.id}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            View all tasks
-                          </NavLink>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* User profile and logout */}
         <div className="mt-auto border-t p-4">
           <div className="ts-profile-card mb-3 flex items-center gap-3 rounded-xl p-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100 font-semibold text-indigo-700">
-              {user.profile_picture_url ? (
-                <img
-                  src={getApiUrl(user.profile_picture_url)}
-                  alt=""
-                  crossOrigin="use-credentials"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                user.full_name.charAt(0).toUpperCase()
-              )}
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100 font-semibold text-indigo-700">
+              <span>{user.full_name.charAt(0).toUpperCase()}</span>
+              {pictureUrl && <AuthenticatedProfileImage src={pictureUrl} refreshKey={pictureVersion} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+              <label aria-label="Change profile picture" title={pictureBusy ? "Uploading picture" : "Change profile picture"} className="absolute bottom-0 right-0 grid h-5 w-5 cursor-pointer place-items-center rounded-full bg-indigo-600 text-white shadow disabled:opacity-50">
+                <Camera size={11} />
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="sr-only" disabled={pictureBusy} onChange={(event) => { void handleProfilePicture(event.currentTarget.files?.[0]); event.currentTarget.value = ""; }} />
+              </label>
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{user.full_name}</p>
-              <p className="truncate text-xs text-slate-500">
-                {roleLabel[user.role] ?? user.role}
-              </p>
+              <p className="truncate text-xs text-slate-500">{roleLabel[user.role] ?? user.role}</p>
+              {pictureMessage && <p role="status" className="mt-1 text-[10px] text-slate-500">{pictureMessage}</p>}
             </div>
           </div>
 
@@ -340,7 +228,9 @@ export default function WorkspaceLayout() {
             </button>
 
             <div className="min-w-0">
-              <p className="text-sm text-slate-500">Your workspace</p>
+              <p className="text-sm text-slate-500">
+                Your workspace
+              </p>
               <h2 className="truncate font-semibold">
                 Welcome, {user.full_name}
               </h2>
@@ -366,3 +256,4 @@ export default function WorkspaceLayout() {
     </div>
   );
 }
+

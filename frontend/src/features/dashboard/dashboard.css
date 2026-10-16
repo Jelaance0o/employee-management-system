@@ -110,38 +110,7 @@
 }
 
 
-/* Role-scoped project and task analytics */
-.ts-analytics-section{display:flex;flex-direction:column;gap:15px;min-width:0}
-.ts-analytics-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
-.ts-analytics-heading p{margin:0;color:var(--ts-accent);font-size:10px;font-weight:800;letter-spacing:.12em}
-.ts-analytics-heading h2{margin:5px 0 0;color:var(--ts-text);font-size:20px;font-weight:750;letter-spacing:-.03em}
-.ts-analytics-heading>div>span{display:block;margin-top:5px;color:var(--ts-text-muted);font-size:12px}
-.ts-analytics-live-label{padding:6px 9px;border:1px solid var(--ts-border);border-radius:999px;color:var(--ts-text-muted);font-size:10px;white-space:nowrap}
-.ts-analytics-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.ts-analytics-card{min-width:0;padding:19px;border-radius:16px}
-.ts-analytics-card>header{display:flex;align-items:center;gap:10px}
-.ts-analytics-card-icon{display:grid;width:36px;height:36px;flex:0 0 auto;place-items:center;border-radius:11px;background:var(--ts-accent-soft);color:var(--ts-accent)}
-.ts-analytics-card>header h3{margin:0;color:var(--ts-text);font-size:13px;font-weight:750}
-.ts-analytics-card>header p{margin:4px 0 0;color:var(--ts-text-muted);font-size:10px;line-height:1.45}
-.ts-analytics-donut-layout{display:grid;grid-template-columns:minmax(115px,.8fr) minmax(0,1fr);align-items:center;gap:14px;margin-top:18px}
-.ts-analytics-donut{position:relative;width:min(100%,168px);aspect-ratio:1;margin-inline:auto}
-.ts-analytics-donut svg{display:block;width:100%;height:100%;overflow:visible}
-.ts-analytics-donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none}
-.ts-analytics-donut-center strong{color:var(--ts-text);font-size:24px;font-weight:800;line-height:1.1}
-.ts-analytics-donut-center span{margin-top:3px;color:var(--ts-text-muted);font-size:10px}
-.ts-analytics-legend{display:flex;flex-direction:column;gap:10px;min-width:0}
-.ts-analytics-legend-row{display:grid;grid-template-columns:8px minmax(0,1fr) auto;align-items:center;gap:8px;color:var(--ts-text-secondary);font-size:10px}
-.ts-analytics-legend-dot{width:8px;height:8px;border-radius:50%}
-.ts-analytics-legend-row strong{color:var(--ts-text);font-size:11px;font-variant-numeric:tabular-nums}
-.ts-analytics-completion{margin-top:17px;padding-top:14px;border-top:1px solid var(--ts-border)}
-.ts-analytics-completion>span{color:var(--ts-text-muted);font-size:10px}.ts-analytics-completion>strong{float:right;color:var(--ts-text);font-size:12px}
-.ts-analytics-progress{height:7px;overflow:hidden;margin-top:9px;border-radius:999px;background:var(--ts-surface-muted)}
-.ts-analytics-progress span{display:block;height:100%;border-radius:inherit;background:var(--ts-success);transition:width .18s ease}
-.ts-analytics-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
-.ts-analytics-metrics>div{display:flex;min-width:0;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--ts-border);border-radius:11px;background:var(--ts-surface-muted)}
-.ts-analytics-metrics span{display:flex;align-items:center;gap:5px;color:var(--ts-text-muted);font-size:9px}.ts-analytics-metrics strong{color:var(--ts-text);font-size:18px;font-weight:800}
-@media(max-width:850px){.ts-analytics-chart-grid{grid-template-columns:minmax(0,1fr)}.ts-analytics-donut-layout{grid-template-columns:minmax(120px,.65fr) minmax(0,1fr)}}
-@media(max-width:520px){.ts-analytics-heading{align-items:flex-start;flex-direction:column}.ts-analytics-card{padding:14px}.ts-analytics-donut-layout{grid-template-columns:112px minmax(0,1fr);gap:12px}.ts-analytics-donut-center strong{font-size:20px}.ts-analytics-legend{gap:8px}.ts-analytics-legend-row{font-size:9px}.ts-analytics-metrics{gap:6px}.ts-analytics-metrics>div{padding:8px}.ts-analytics-metrics span{font-size:8px}}
-@media(prefers-reduced-motion:reduce){.ts-analytics-progress span{transition:none}}
 
-.ts-dashboard-owner{display:inline-flex;align-items:center;gap:4px}.ts-dashboard-owner img{width:18px;height:18px;flex:0 0 auto;border:1px solid var(--ts-border);border-radius:6px;object-fit:cover}
+.ts-project-task-expansion{animation:ts-project-task-expand 180ms ease-out both;transform-origin:top center}
+@keyframes ts-project-task-expand{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.ts-project-task-expansion{animation:none}}

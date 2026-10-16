@@ -11,7 +11,7 @@ from app.core.security import hash_password
 from app.models import Invitation, User
 
 INVITATION_HOURS = 24
-ALLOWED_INVITEE_ROLES = {"employee", "project_manager"}
+ALLOWED_INVITEE_ROLES = {"employee", "project_manager", "admin"}
 
 
 def hash_invitation_token(token: str) -> str:
@@ -129,6 +129,11 @@ def accept_invitation(
     token: str,
     full_name: str,
     password: str,
+    department: str | None = None,
+    job_title: str | None = None,
+    bio: str | None = None,
+    skills: list[str] | None = None,
+    tech_stack: list[str] | None = None,
 ) -> User:
     try:
         invitation = find_valid_invitation(db, token, lock=True)
@@ -150,6 +155,11 @@ def accept_invitation(
             password_hash=hash_password(password),
             role=invitation.role,
             is_active=True,
+            department=department,
+            job_title=job_title,
+            bio=bio,
+            skills=skills,
+            tech_stack=tech_stack,
         )
 
         db.add(user)

@@ -3,11 +3,11 @@ from datetime import datetime
 from sqlalchemy import (
     Boolean,
     JSON,
+    LargeBinary,
     DateTime,
     ForeignKey,
     Integer,
     String,
-    LargeBinary,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -63,12 +63,16 @@ class User(Base):
     bio: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     skills: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     tech_stack: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
-    profile_picture: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    profile_picture: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, deferred=True)
     profile_picture_content_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     @property
     def profile_picture_url(self) -> str | None:
-        return f"/api/v1/teammates/{self.id}/profile-picture" if self.profile_picture else None
+        # Avoid rendering broken image URLs and unnecessary 404 requests for
+        # users who have not uploaded a picture. The image bytes stay deferred.
+        if not self.profile_picture_content_type:
+            return None
+        return f"/api/v1/teammates/{self.id}/picture"
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

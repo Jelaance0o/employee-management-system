@@ -119,6 +119,7 @@ def create_invitation(client, email="teammate@example.com", role="employee"):
     assert response.status_code == 201, response.text
 
     invitation_url = response.json()["invitation_url"]
+    assert urlparse(invitation_url).path == "/accept-invitation"
     token = parse_qs(urlparse(invitation_url).query)["token"][0]
 
     return response, token
@@ -317,3 +318,31 @@ def test_revoked_invitation_is_rejected(
 
     assert response.status_code == 400
     assert "revoked" in response.json()["detail"].lower()
+
+
+def test_invitation_acceptance_saves_profile_fields(client, test_admin):
+    login_admin(client)
+    _, token = create_invitation(client, email="profile-teammate@example.com", role="employee")
+    client.post("/api/v1/auth/logout")
+
+    response = client.post(
+        "/api/v1/invitations/accept",
+        json={
+            "token": token,
+            "full_name": "Profile Teammate",
+            "password": "StrongPass@123",
+            "department": "Engineering",
+            "job_title": "Frontend Developer",
+            "bio": "Builds accessible web applications.",
+            "skills": ["React", "TypeScript", " react "],
+            "tech_stack": ["Vite", "FastAPI"],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["department"] == "Engineering"
+    assert body["job_title"] == "Frontend Developer"
+    assert body["bio"] == "Builds accessible web applications."
+    assert body["skills"] == ["React", "TypeScript"]
+    assert body["tech_stack"] == ["Vite", "FastAPI"]

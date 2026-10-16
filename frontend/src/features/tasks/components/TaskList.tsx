@@ -2,7 +2,6 @@ import { CalendarDays, ChevronRight, UserRound } from "lucide-react";
 import type { Project, Task } from "../tasks.types";
 import { formatTaskDate, isTaskOverdue } from "../tasks.utils";
 import { TaskPriorityBadge, TaskStatusBadge } from "./TaskBadges";
-import { Avatar } from "../../team/components/TeamBadges";
 
 interface Props {
   tasks: Task[];
@@ -41,7 +40,7 @@ export default function TaskList({ tasks, projectsById, teammatesById, onOpen }:
 
             <span className="ts-task-list-meta ts-task-list-assignee">
               <UserRound size={14} />
-              <Avatar name={assignee ?? "Unassigned"} profilePictureUrl={task.assigned_to_profile_picture_url} size="small" /><span>{assignee ?? (task.assigned_to_id ? `Member #${task.assigned_to_id}` : "Unassigned")}</span>
+              <span>{assignee ?? (task.assigned_to_id ? `Member #${task.assigned_to_id}` : "Unassigned")}</span>
             </span>
 
             <span className={`ts-task-list-meta ts-task-list-date ${overdue ? "is-overdue" : ""}`}>

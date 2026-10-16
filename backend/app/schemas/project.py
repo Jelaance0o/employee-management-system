@@ -64,7 +64,6 @@ class ProjectResponse(BaseModel):
     created_by_id: int
     project_manager_id: int | None
     project_manager_name: str | None = None
-    project_manager_profile_picture_url: str | None = None
     created_at: datetime
     updated_at: datetime
 

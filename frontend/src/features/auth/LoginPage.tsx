@@ -97,6 +97,12 @@ export default function LoginPage() {
             Enter your account details to continue.
           </p>
 
+          {location.state?.invitationAccepted && (
+            <div role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              Your account has been created. Sign in with your new credentials.
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
               <label htmlFor="email" className="mb-2 block text-sm font-medium">

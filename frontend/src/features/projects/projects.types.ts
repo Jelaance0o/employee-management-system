@@ -19,7 +19,6 @@ export interface Project {
   created_by_id: number;
   project_manager_id: number | null;
   project_manager_name?: string | null;
-  project_manager_profile_picture_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,7 +29,6 @@ export interface Teammate {
   email: string;
   role: "admin" | "project_manager" | "employee";
   is_active: boolean;
-  profile_picture_url?: string | null;
 }
 
 export interface ProjectFormValues {

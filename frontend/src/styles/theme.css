@@ -22,7 +22,6 @@
   --ts-success-soft: #dafbe1;
   --ts-focus: #0969da;
   --ts-shadow: 0 1px 2px rgb(31 35 40 / 4%);
-  --ts-chart-1: #0969da; --ts-chart-2: #1a7f37; --ts-chart-3: #d29922; --ts-chart-4: #8250df; --ts-chart-5: #cf222e;
 }
 
 :root[data-theme="github-dark"] {
@@ -46,7 +45,6 @@
   --ts-success-soft: #163321;
   --ts-focus: #4493f8;
   --ts-shadow: 0 1px 2px rgb(0 0 0 / 20%);
-  --ts-chart-1: #4493f8; --ts-chart-2: #3fb950; --ts-chart-3: #d29922; --ts-chart-4: #bc8cff; --ts-chart-5: #ff7b72;
 }
 
 :root[data-theme="dark"] {
@@ -70,5 +68,4 @@
   --ts-success-soft: #20382c;
   --ts-focus: #a5b4fc;
   --ts-shadow: 0 1px 2px rgb(0 0 0 / 15%);
-  --ts-chart-1: #818cf8; --ts-chart-2: #4ade80; --ts-chart-3: #fbbf24; --ts-chart-4: #c084fc; --ts-chart-5: #f87171;
 }

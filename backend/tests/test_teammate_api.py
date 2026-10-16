@@ -10,6 +10,9 @@ from app.db.session import get_db
 from app.main import app
 from app.models.base import Base
 from app.models.invitation import Invitation
+from app.models.project import Project
+from app.models.project_member import ProjectMember
+from app.models.task import Task
 from app.models.user import User
 from app.models.workspace import Workspace
 
@@ -28,26 +31,12 @@ def test_database():
         expire_on_commit=False,
     )
 
-    Base.metadata.create_all(
-        bind=engine,
-        tables=[
-            Workspace.__table__,
-            User.__table__,
-            Invitation.__table__,
-        ],
-    )
+    Base.metadata.create_all(bind=engine)
 
     try:
         yield TestingSessionLocal
     finally:
-        Base.metadata.drop_all(
-            bind=engine,
-            tables=[
-                Invitation.__table__,
-                User.__table__,
-                Workspace.__table__,
-            ],
-        )
+        Base.metadata.drop_all(bind=engine)
         engine.dispose()
 
 
@@ -217,3 +206,50 @@ def test_last_active_admin_cannot_be_demoted(client, team):
     )
 
     assert response.status_code == 400
+
+
+def test_admin_can_view_teammate_work_details(client, team, test_database):
+    with test_database() as db:
+        admin = db.get(User, team["admin_id"])
+        employee = db.get(User, team["employee_id"])
+        project = Project(
+            workspace_id=team["workspace_id"],
+            name="Website Refresh",
+            description="Refresh the company website",
+            status="active",
+            priority="high",
+            created_by_id=admin.id,
+            project_manager_id=admin.id,
+        )
+        db.add(project)
+        db.flush()
+        db.add(ProjectMember(project_id=project.id, user_id=employee.id, added_by_id=admin.id))
+        task = Task(
+            workspace_id=team["workspace_id"],
+            project_id=project.id,
+            title="Build responsive header",
+            status="In Progress",
+            priority="high",
+            created_by_id=admin.id,
+            assigned_to_id=employee.id,
+        )
+        db.add(task)
+        db.commit()
+        employee_id = employee.id
+
+    login(client, "admin@team-one.example", "AdminPass@123")
+    response = client.get(f"/api/v1/teammates/{employee_id}/details")
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["full_name"] == "Team Employee"
+    assert body["task_stats"]["total"] == 1
+    assert body["task_stats"]["pending"] == 1
+    assert body["projects"][0]["name"] == "Website Refresh"
+    assert body["recent_tasks"][0]["title"] == "Build responsive header"
+
+
+def test_admin_cannot_view_details_from_another_workspace(client, team):
+    login(client, "admin@team-one.example", "AdminPass@123")
+    response = client.get(f"/api/v1/teammates/{team['other_admin_id']}/details")
+    assert response.status_code == 404

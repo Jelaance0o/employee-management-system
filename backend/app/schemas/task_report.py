@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-ReportType = Literal["progress", "blocker", "issue", "question"]
+ReportType = Literal["progress", "discussion", "blocker", "issue", "question"]
 ReportStatus = Literal["open", "acknowledged", "resolved"]
 
 

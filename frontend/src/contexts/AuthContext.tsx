@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -17,12 +18,12 @@ export interface User {
   role: "admin" | "project_manager" | "employee" | string;
   is_active: boolean;
   created_at: string;
+  profile_picture_url?: string | null;
   department?: string | null;
   job_title?: string | null;
   bio?: string | null;
   skills?: string[] | null;
   tech_stack?: string[] | null;
-  profile_picture_url?: string | null;
 }
 
 interface AuthContextValue {
@@ -30,7 +31,6 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -60,8 +60,10 @@ function getErrorMessage(error: unknown): string {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const sessionVersion = useRef(0);
 
   const login = useCallback(async (email: string, password: string) => {
+    sessionVersion.current += 1;
     try {
       const response = await api.post<User>("/api/v1/auth/login", {
         email,
@@ -74,11 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateUser = useCallback((updatedUser: User) => {
-    setUser(updatedUser);
-  }, []);
-
   const logout = useCallback(async () => {
+    sessionVersion.current += 1;
     try {
       await api.post("/api/v1/auth/logout");
     } finally {
@@ -90,14 +89,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function restoreSession() {
+      const versionAtStart = sessionVersion.current;
       try {
         const response = await api.get<User>("/api/v1/auth/me");
 
-        if (!cancelled) {
+        if (!cancelled && sessionVersion.current === versionAtStart) {
           setUser(response.data);
         }
       } catch {
-        if (!cancelled) {
+        if (!cancelled && sessionVersion.current === versionAtStart) {
           setUser(null);
         }
       } finally {
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,9 +3,7 @@
 .ts-table-row { border-bottom: 1px solid var(--ts-border); transition: background-color 120ms ease; }
 .ts-table-row:last-child { border-bottom: 0; }
 .ts-table-row:hover { background: var(--ts-surface-muted); }
-.ts-avatar { display: inline-flex; width: 40px; height: 40px; flex-shrink: 0; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--ts-border); border-radius: 12px; background: var(--ts-accent-soft); color: var(--ts-accent); font-size: 13px; font-weight: 650; }
-.ts-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.ts-avatar-sm { width: 24px; height: 24px; border-radius: 8px; font-size: 9px; }
+.ts-avatar { display: flex; width: 40px; height: 40px; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid var(--ts-border); border-radius: 12px; background: var(--ts-accent-soft); color: var(--ts-accent); font-size: 13px; font-weight: 650; }
 .ts-team-role, .ts-team-status { display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 5px 8px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .ts-team-role-admin { background: var(--ts-accent-soft); color: var(--ts-accent); }
 .ts-team-role-project_manager { background: var(--ts-surface-muted); color: var(--ts-text-secondary); }

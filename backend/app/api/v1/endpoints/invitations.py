@@ -101,6 +101,11 @@ def accept_teammate_invitation(
             token=payload.token,
             full_name=payload.full_name,
             password=payload.password,
+            department=payload.department,
+            job_title=payload.job_title,
+            bio=payload.bio,
+            skills=payload.skills,
+            tech_stack=payload.tech_stack,
         )
     except ValueError as exc:
         raise HTTPException(

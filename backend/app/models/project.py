@@ -87,11 +87,6 @@ class Project(Base):
         """Expose only the manager's display name in project API responses."""
         return self.project_manager.full_name if self.project_manager else None
 
-    @property
-    def project_manager_profile_picture_url(self) -> str | None:
-        manager = self.project_manager
-        return manager.profile_picture_url if manager else None
-
     members = relationship(
         "ProjectMember",
         back_populates="project",

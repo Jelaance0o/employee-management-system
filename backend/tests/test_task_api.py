@@ -615,3 +615,34 @@ def test_project_response_includes_manager_name(client, team, project_data):
     )
     assert project["project_manager_name"] == "Project Manager"
     assert "email" not in project
+
+
+def test_manager_cannot_create_task_in_project_they_do_not_manage(client, team, project_data, test_database):
+    with test_database() as db:
+        project = Project(
+            workspace_id=team["workspace_id"],
+            name="Not Managed by Manager",
+            description="Project assigned to Admin",
+            status="active",
+            priority="medium",
+            created_by_id=team["admin_id"],
+            project_manager_id=team["admin_id"],
+        )
+        db.add(project)
+        db.flush()
+        db.add(ProjectMember(project_id=project.id, user_id=team["manager_id"], added_by_id=team["admin_id"]))
+        db.commit()
+        other_project_id = project.id
+
+    login(client, "manager@team-one.example", "ManagerPass@123")
+    response = client.post(
+        "/api/v1/tasks",
+        json={
+            "project_id": other_project_id,
+            "title": "Should be rejected",
+            "priority": "medium",
+            "assigned_to_id": team["employee_id"],
+        },
+    )
+    assert response.status_code == 403
+    assert "assigned Project Manager" in response.json()["detail"]

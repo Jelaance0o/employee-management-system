@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AlertCircle, ClipboardList, LoaderCircle, Plus, RefreshCw, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import api from "../../lib/api";
 import type { Project, Task, TaskTeammate } from "./tasks.types";
 import { getTaskErrorMessage } from "./tasks.utils";
 import { getTaskProjects, getTaskTeammates, getTasks } from "./tasks.api";
@@ -18,6 +19,7 @@ import "./styles/task-form.css";
 export default function TasksPage() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const handledTaskId = useRef<string | null>(null);
   const isAdmin = user?.role === "admin";
   const canCreate = isAdmin || user?.role === "project_manager";
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -30,7 +32,7 @@ export default function TasksPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [projectFilter, setProjectFilter] = useState("all");
+  const [projectFilter, setProjectFilter] = useState(() => searchParams.get("projectId") ?? "all");
   const [formTask, setFormTask] = useState<Task | null | "create">(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -51,19 +53,39 @@ export default function TasksPage() {
   useEffect(() => { if (!success) return; const timeout = window.setTimeout(() => setSuccess(""), 3500); return () => window.clearTimeout(timeout); }, [success]);
 
   useEffect(() => {
-    const projectId = searchParams.get("project_id");
-    if (projectId) setProjectFilter(projectId);
-    const taskId = searchParams.get("task_id");
-    if (!taskId) return;
-    const task = tasks.find((item) => item.id === Number(taskId));
-    if (!task) return;
-    setSelectedTask(task);
-    const next = new URLSearchParams(searchParams);
-    next.delete("task_id");
-    setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams, tasks]);
+    const projectId = searchParams.get("projectId");
+    if (projectId && projectFilter !== projectId) setProjectFilter(projectId);
+  }, [searchParams, projectFilter]);
+
+  useEffect(() => {
+    const taskId = searchParams.get("taskId");
+    if (!taskId || loading || handledTaskId.current === taskId) return;
+    handledTaskId.current = taskId;
+    const clearTaskQuery = () => {
+      const next = new URLSearchParams(searchParams);
+      next.delete("taskId");
+      setSearchParams(next, { replace: true });
+    };
+    const existingTask = tasks.find((task) => task.id === Number(taskId));
+    if (existingTask) {
+      setSelectedTask(existingTask);
+      clearTaskQuery();
+      return;
+    }
+    api.get<Task>(`/api/v1/tasks/${encodeURIComponent(taskId)}`)
+      .then((response) => {
+        setTasks((current) => current.some((task) => task.id === response.data.id) ? current : [response.data, ...current]);
+        setSelectedTask(response.data);
+      })
+      .catch((err: unknown) => setError(getTaskErrorMessage(err)))
+      .finally(clearTaskQuery);
+  }, [loading, tasks, searchParams, setSearchParams]);
 
   const projectsById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects]);
+  const taskCreationProjects = useMemo(
+    () => isAdmin ? projects : projects.filter((project) => project.project_manager_id === user?.id),
+    [isAdmin, projects, user?.id],
+  );
   const teammatesById = useMemo(() => new Map(teammates.map((person) => [person.id, person.full_name])), [teammates]);
 
   const filteredTasks = useMemo(() => {
@@ -104,7 +126,7 @@ export default function TasksPage() {
 
     <TaskReportsPanel tasks={tasks} userId={user?.id} role={user?.role} />
 
-    {formTask !== null && <TaskFormDialog task={formTask === "create" ? null : formTask} projects={projects} onClose={() => setFormTask(null)} onSaved={handleSaved} />}
+    {formTask !== null && <TaskFormDialog task={formTask === "create" ? null : formTask} projects={formTask === "create" ? taskCreationProjects : projects} onClose={() => setFormTask(null)} onSaved={handleSaved} />}
     {selectedTask && <TaskDetailsDialog key={selectedTask.id} task={selectedTask} project={projectsById.get(selectedTask.project_id)} assigneeName={selectedTask.assigned_to_id ? teammatesById.get(selectedTask.assigned_to_id) : undefined} role={user?.role} userId={user?.id} onClose={() => setSelectedTask(null)} onEdit={(task) => { setSelectedTask(null); setFormTask(task); }} onUpdated={replaceTask} />}
   </main>;
 }

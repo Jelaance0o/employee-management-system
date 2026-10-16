@@ -200,5 +200,3 @@
   .ts-task-list-owners span { max-width: 100%; }
   .ts-task-list-assignee { max-width: 150px; }
 }
-
-.ts-task-list-assignee .ts-avatar { flex: 0 0 auto; }

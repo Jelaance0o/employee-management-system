@@ -14,6 +14,7 @@ import TeamPage from "./features/team/TeamPage";
 import ProjectsPage from "./features/projects/ProjectsPage";
 import TasksPage from "./features/tasks/TasksPage";
 import LoginPage from "./features/auth/LoginPage";
+import InvitationAcceptancePage from "./features/auth/InvitationAcceptancePage";
 
 function LoadingScreen() {
   return (
@@ -53,6 +54,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      {/* Invitation acceptance is intentionally public and must not wait for or be redirected by session guards. */}
+      <Route path="/accept-invitation" element={<InvitationAcceptancePage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<WorkspaceLayout />}>

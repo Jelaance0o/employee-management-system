@@ -5,7 +5,7 @@ import type { Task } from "../tasks.types";
 import { getTaskErrorMessage } from "../tasks.utils";
 import "../styles/task-reports.css";
 
-type ReportType = "progress" | "blocker" | "issue" | "question";
+type ReportType = "progress" | "discussion" | "blocker" | "issue" | "question";
 type ReportStatus = "open" | "acknowledged" | "resolved";
 interface TaskReport {
   id: number;
@@ -25,7 +25,7 @@ interface TaskReport {
   resolved_at: string | null;
 }
 interface Props { tasks: Task[]; userId: number | undefined; role: string | undefined; }
-const TYPE_LABELS: Record<ReportType, string> = { progress: "Progress update", blocker: "Blocker", issue: "Technical issue", question: "Question" };
+const TYPE_LABELS: Record<ReportType, string> = { progress: "Progress update", discussion: "Task discussion", blocker: "Blocker", issue: "Technical issue", question: "Question" };
 function formatDate(value: string) { return new Date(value).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); }
 
 export default function TaskReportsPanel({ tasks, userId, role }: Props) {
@@ -80,7 +80,7 @@ export default function TaskReportsPanel({ tasks, userId, role }: Props) {
   }
 
   return <section className="ts-panel ts-task-reports-panel">
-    <header className="ts-task-reports-heading"><div className="ts-task-reports-heading-icon"><MessageSquareText size={19} /></div><div><h2>{isMember ? "Task updates & help requests" : "Member reports"}</h2><p>{isMember ? "Send a progress review, report a blocker, or ask your manager for help." : "Review task progress, respond to blockers, and close resolved issues."}</p></div><span className="ts-task-reports-count">{reports.length}</span></header>
+    <header className="ts-task-reports-heading"><div className="ts-task-reports-heading-icon"><MessageSquareText size={19} /></div><div><h2>{isMember ? "Team updates & task discussions" : "Team communication & member reports"}</h2><p>{isMember ? "Share progress, discuss a task, report blockers or technical issues, and get a response from your manager." : "Review team updates, respond to task discussions and blockers, and close resolved issues."}</p></div><span className="ts-task-reports-count">{reports.length}</span></header>
     {error && <div className="ts-feedback ts-feedback-error ts-task-report-feedback"><AlertCircle size={15} /><span>{error}</span><button type="button" className="ts-icon-button" onClick={() => setError("")} aria-label="Dismiss error"><X size={14} /></button></div>}
     {notice && <div className="ts-feedback ts-feedback-success ts-task-report-feedback"><CheckCircle2 size={15} /><span>{notice}</span><button type="button" className="ts-icon-button" onClick={() => setNotice("")} aria-label="Dismiss message"><X size={14} /></button></div>}
 

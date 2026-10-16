@@ -11,6 +11,9 @@ export interface Teammate {
   created_at: string;
   department?: string | null;
   job_title?: string | null;
+  bio?: string | null;
+  skills?: string[] | null;
+  tech_stack?: string[] | null;
   profile_picture_url?: string | null;
 }
 
